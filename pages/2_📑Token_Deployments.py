@@ -10,7 +10,7 @@ import networkx as nx
 # --- Page Config ------------------------------------------------------------------------------------------------------
 st.set_page_config(
     page_title="Axelar Interchain Token Service (ITS)",
-    page_icon="https://pbs.twimg.com/profile_images/1877235283755778048/4nlylmxm_400x400.jpg",
+    page_icon="https://pbs.twimg.com/profile_images/1869486848646537216/rs71wCQo_400x400.jpg",
     layout="wide"
 )
 
