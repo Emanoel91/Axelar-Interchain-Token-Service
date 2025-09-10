@@ -11,7 +11,7 @@ st.set_page_config(
 st.markdown(
     """
     <div style="display: flex; align-items: center; gap: 15px;">
-        <img src="https://pbs.twimg.com/profile_images/1877235283755778048/4nlylmxm_400x400.jpg" alt="axelar" style="width:60px; height:60px;">
+        <img src="https://pbs.twimg.com/profile_images/1869486848646537216/rs71wCQo_400x400.jpg" alt="axelar" style="width:60px; height:60px;">
         <h1 style="margin: 0;">Axelar Interchain Token Service (ITS)</h1>
     </div>
     """,
