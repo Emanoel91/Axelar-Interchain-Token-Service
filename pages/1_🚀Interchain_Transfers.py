@@ -153,48 +153,16 @@ col1, col2 = st.columns(2)
 
 # Number of Interchain Transfers Over Time
 fig1 = go.Figure()
-fig1.add_trace(go.Bar(
-    x=agg_df["period"],
-    y=agg_df["num_txs"],
-    name="Transfers",
-    yaxis="y1"
-))
-fig1.add_trace(go.Scatter(
-    x=agg_df["period"],
-    y=agg_df["cum_num_txs"],
-    name="Total Transfers",
-    yaxis="y2",
-    mode="lines+markers"
-))
-fig1.update_layout(
-    title="Number of Interchain Transfers Over Time",
-    yaxis=dict(title="Transfers"),
-    yaxis2=dict(title="Total Transfers", overlaying="y", side="right"),
-    xaxis_title="Date",
-    legend=dict(x=0, y=1.2)
-)
+fig1.add_trace(go.Bar(x=agg_df["period"], y=agg_df["num_txs"], name="Transfers", yaxis="y1"))
+fig1.add_trace(go.Scatter(x=agg_df["period"], y=agg_df["cum_num_txs"], name="Total Transfers", yaxis="y2", mode="lines"))
+fig1.update_layout(title="Number of Interchain Transfers Over Time", yaxis=dict(title="Txns count"), yaxis2=dict(title="Txns count", overlaying="y", side="right"),
+    xaxis_title="", legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
 col1.plotly_chart(fig1, use_container_width=True)
 
 # Volume of Interchain Transfers Over Time
 fig2 = go.Figure()
-fig2.add_trace(go.Bar(
-    x=agg_df["period"],
-    y=agg_df["volume"],
-    name="Volume",
-    yaxis="y1"
-))
-fig2.add_trace(go.Scatter(
-    x=agg_df["period"],
-    y=agg_df["cum_volume"],
-    name="Total Volume",
-    yaxis="y2",
-    mode="lines+markers"
-))
-fig2.update_layout(
-    title="Volume of Interchain Transfers Over Time",
-    yaxis=dict(title="Volume"),
-    yaxis2=dict(title="Total Volume", overlaying="y", side="right"),
-    xaxis_title="Date",
-    legend=dict(x=0, y=1.2)
-)
+fig2.add_trace(go.Bar(x=agg_df["period"], y=agg_df["volume"], name="Volume", yaxis="y1"))
+fig2.add_trace(go.Scatter(x=agg_df["period"], y=agg_df["cum_volume"],name="Total Volume", yaxis="y2", mode="lines"))
+fig2.update_layout(title="Volume of Interchain Transfers Over Time", yaxis=dict(title="$USD"), yaxis2=dict(title="$USD", overlaying="y", side="right"), xaxis_title="",
+    legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
 col2.plotly_chart(fig2, use_container_width=True)
