@@ -69,11 +69,9 @@ elif timeframe == "month":
 query = f"""
 SELECT 
     {trunc} as Date,
-    label,
-    SUM(num_txs) as Number_of_Transfers,
-    SUM(SUM(num_txs)) OVER (PARTITION BY label ORDER BY {trunc}) as Total_Number_of_Transfers
+    SUM(num_txs) as Number_of_Transfers
 FROM final_df
-GROUP BY Date, label
+GROUP BY Date
 ORDER BY Date
 """
 
@@ -95,24 +93,11 @@ fig.add_trace(
     )
 )
 
-# Line: Total Number of Transfers
-fig.add_trace(
-    go.Scatter(
-        x=df_sql["Date"],
-        y=df_sql["Total_Number_of_Transfers"],
-        name="Total Number of Transfers",
-        mode="lines+markers",
-        line=dict(color="darkorange", width=2),
-        yaxis="y2"
-    )
-)
-
 # Layout with two y-axes
 fig.update_layout(
     title=f"Transfers per {timeframe.capitalize()}",
     xaxis=dict(title="Date"),
     yaxis=dict(title="Number of Transfers", side="left"),
-    yaxis2=dict(title="Total Number of Transfers", overlaying="y", side="right"),
     barmode="group",
     hovermode="x unified"
 )
