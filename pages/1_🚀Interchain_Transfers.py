@@ -108,119 +108,40 @@ with col2:
 with col3:
     end_date = st.date_input("End Date", value=pd.to_datetime("2025-09-30"))
 
+# --- API URLs --------------------------------------------------------------------------------------------------
+URLS = {
+    "contract_1": "https://api.axelarscan.io/gmp/GMPChart?contractAddress=axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr",
+    "contract_2": "https://api.axelarscan.io/gmp/GMPChart?contractAddress=0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C"
+}
 
-# --- Function to fetch & decode API data --------------------------------------------------------------------------
-def fetch_and_decode_data(api_url, start_date, end_date, label):
+def fetch_and_decode(url: str) -> pd.DataFrame:
     """
-    Fetch and decode data from Axelar API and return DataFrame with label column.
+    دریافت دیتا از API و تبدیل به DataFrame
     """
-
-    # --- Convert date inputs to unixtime (seconds) ---
-    from_time = int(time.mktime(start_date.timetuple()))
-    to_time = int(time.mktime(end_date.timetuple()))
-
-    # --- Build API URL with time range ---
-    url = f"{api_url}&fromTime={from_time}&toTime={to_time}"
-
-    # --- Fetch data ---
-    response = requests.get(url)
-    if response.status_code != 200:
-        st.error(f"❌ API call failed for {label}!")
-        return pd.DataFrame()
-
-    data = response.json().get("data", [])
-
-    if not data:
-        st.warning(f"⚠️ No data available for {label} in the selected range.")
-        return pd.DataFrame()
-
-    # --- Decode & Normalize ---
+    resp = requests.get(url)
+    resp.raise_for_status()
+    json_data = resp.json()
+    
+    # استخراج بخش data
+    data = json_data.get("data", [])
+    
+    # تبدیل به DataFrame
     df = pd.DataFrame(data)
-
-    # Convert timestamp (ms) → datetime
-    df["date"] = pd.to_datetime(df["timestamp"], unit="ms")
-
-    # Reorder + add label column
-    df = df[["date", "volume", "num_txs"]]
-    df["label"] = label
-
+    
+    if not df.empty:
+        # تبدیل timestamp از ms به datetime
+        df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
+        df = df.rename(columns={"timestamp": "date", "volume": "volume", "num_txs": "transactions"})
+    
     return df
 
+# --- Run -------------------------------------------------------------------------------------------------------
+df_contract1 = fetch_and_decode(URLS["contract_1"])
+df_contract2 = fetch_and_decode(URLS["contract_2"])
 
-# --- API Endpoints ------------------------------------------------------------------------------------------------
-api1 = "https://api.axelarscan.io/gmp/GMPChart?contractAddress=0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C"
-api2 = "https://api.axelarscan.io/gmp/GMPChart?contractAddress=axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr"
+# نمونه نمایش
+print("Contract 1:")
+print(df_contract1.head())
 
-# --- Fetch Data ---------------------------------------------------------------------------------------------------
-df1 = fetch_and_decode_data(api1, start_date, end_date, "Interchain Token Service")
-df2 = fetch_and_decode_data(api2, start_date, end_date, "Axelar ITS Hub")
-
-# Merge into one table
-final_df = pd.concat([df1, df2], ignore_index=True)
-
-# --- Display Data ------------------------------------------------------------------------------------------------
-st.subheader("📋 Combined API Data Table")
-st.dataframe(final_df, use_container_width=True)
-
-
-# --- Aggregation (similar to SQL query) ---------------------------------------------------------------------------
-if not final_df.empty:
-    if timeframe == "day":
-        df_grouped = final_df.groupby([pd.Grouper(key="date", freq="D"), "label"]).agg(
-            Number_of_Transfers=("num_txs", "sum")
-        ).reset_index()
-
-    elif timeframe == "week":
-        df_grouped = final_df.groupby([pd.Grouper(key="date", freq="W-MON"), "label"]).agg(
-            Number_of_Transfers=("num_txs", "sum")
-        ).reset_index()
-
-    elif timeframe == "month":
-        df_grouped = final_df.groupby([pd.Grouper(key="date", freq="M"), "label"]).agg(
-            Number_of_Transfers=("num_txs", "sum")
-        ).reset_index()
-
-    # Add cumulative sum (like window function in SQL)
-    df_grouped["Total_Number_of_Transfers"] = df_grouped.groupby("label")["Number_of_Transfers"].cumsum()
-
-    st.subheader("📊 Aggregated Data")
-    st.dataframe(df_grouped, use_container_width=True)
-
-    # --- Combined Column + Line Chart ----------------------------------------------------------------------------
-    fig = go.Figure()
-
-    # Bar: Number of Transfers
-    fig.add_trace(
-        go.Bar(
-            x=df_grouped["date"],
-            y=df_grouped["Number_of_Transfers"],
-            name="Number of Transfers",
-            marker_color="steelblue",
-            yaxis="y1"
-        )
-    )
-
-    # Line: Total Number of Transfers
-    fig.add_trace(
-        go.Scatter(
-            x=df_grouped["date"],
-            y=df_grouped["Total_Number_of_Transfers"],
-            name="Total Number of Transfers",
-            mode="lines+markers",
-            line=dict(color="darkorange", width=2),
-            yaxis="y2"
-        )
-    )
-
-    # Layout with two y-axes
-    fig.update_layout(
-        title=f"Transfers per {timeframe.capitalize()}",
-        xaxis=dict(title="Date"),
-        yaxis=dict(title="Number of Transfers", side="left"),
-        yaxis2=dict(title="Total Number of Transfers", overlaying="y", side="right"),
-        barmode="group",
-        legend=dict(x=0.01, y=0.99),
-        hovermode="x unified"
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
+print("\nContract 2:")
+print(df_contract2.head())
