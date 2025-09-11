@@ -161,3 +161,66 @@ final_df = pd.concat([df1, df2], ignore_index=True)
 # --- Display Data ------------------------------------------------------------------------------------------------
 st.subheader("📋 Combined API Data Table")
 st.dataframe(final_df, use_container_width=True)
+
+
+# --- Aggregation (similar to SQL query) ---------------------------------------------------------------------------
+if not final_df.empty:
+    if timeframe == "day":
+        df_grouped = final_df.groupby([pd.Grouper(key="date", freq="D"), "label"]).agg(
+            Number_of_Transfers=("num_txs", "sum")
+        ).reset_index()
+
+    elif timeframe == "week":
+        df_grouped = final_df.groupby([pd.Grouper(key="date", freq="W-MON"), "label"]).agg(
+            Number_of_Transfers=("num_txs", "sum")
+        ).reset_index()
+
+    elif timeframe == "month":
+        df_grouped = final_df.groupby([pd.Grouper(key="date", freq="M"), "label"]).agg(
+            Number_of_Transfers=("num_txs", "sum")
+        ).reset_index()
+
+    # Add cumulative sum (like window function in SQL)
+    df_grouped["Total_Number_of_Transfers"] = df_grouped.groupby("label")["Number_of_Transfers"].cumsum()
+
+    st.subheader("📊 Aggregated Data")
+    st.dataframe(df_grouped, use_container_width=True)
+
+    # --- Combined Column + Line Chart ----------------------------------------------------------------------------
+    fig = go.Figure()
+
+    # Bar: Number of Transfers
+    fig.add_trace(
+        go.Bar(
+            x=df_grouped["date"],
+            y=df_grouped["Number_of_Transfers"],
+            name="Number of Transfers",
+            marker_color="steelblue",
+            yaxis="y1"
+        )
+    )
+
+    # Line: Total Number of Transfers
+    fig.add_trace(
+        go.Scatter(
+            x=df_grouped["date"],
+            y=df_grouped["Total_Number_of_Transfers"],
+            name="Total Number of Transfers",
+            mode="lines+markers",
+            line=dict(color="darkorange", width=2),
+            yaxis="y2"
+        )
+    )
+
+    # Layout with two y-axes
+    fig.update_layout(
+        title=f"Transfers per {timeframe.capitalize()}",
+        xaxis=dict(title="Date"),
+        yaxis=dict(title="Number of Transfers", side="left"),
+        yaxis2=dict(title="Total Number of Transfers", overlaying="y", side="right"),
+        barmode="group",
+        legend=dict(x=0.01, y=0.99),
+        hovermode="x unified"
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
