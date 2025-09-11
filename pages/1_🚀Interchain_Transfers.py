@@ -110,9 +110,9 @@ with col3:
 
 
 # --- Function to fetch & decode API data --------------------------------------------------------------------------
-def fetch_and_decode_data(api_url, start_date, end_date):
+def fetch_and_decode_data(api_url, start_date, end_date, label):
     """
-    Fetch and decode data from Axelar API and return DataFrame.
+    Fetch and decode data from Axelar API and return DataFrame with label column.
     """
 
     # --- Convert date inputs to unixtime (seconds) ---
@@ -125,13 +125,13 @@ def fetch_and_decode_data(api_url, start_date, end_date):
     # --- Fetch data ---
     response = requests.get(url)
     if response.status_code != 200:
-        st.error("❌ API call failed!")
+        st.error(f"❌ API call failed for {label}!")
         return pd.DataFrame()
 
     data = response.json().get("data", [])
 
     if not data:
-        st.warning("⚠️ No data available for the selected range.")
+        st.warning(f"⚠️ No data available for {label} in the selected range.")
         return pd.DataFrame()
 
     # --- Decode & Normalize ---
@@ -140,8 +140,9 @@ def fetch_and_decode_data(api_url, start_date, end_date):
     # Convert timestamp (ms) → datetime
     df["date"] = pd.to_datetime(df["timestamp"], unit="ms")
 
-    # Reorder columns
+    # Reorder + add label column
     df = df[["date", "volume", "num_txs"]]
+    df["label"] = label
 
     return df
 
@@ -150,15 +151,13 @@ def fetch_and_decode_data(api_url, start_date, end_date):
 api1 = "https://api.axelarscan.io/gmp/GMPChart?contractAddress=0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C"
 api2 = "https://api.axelarscan.io/gmp/GMPChart?contractAddress=axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr"
 
-# --- Display Data in Tabs -----------------------------------------------------------------------------------------
-st.subheader("📋 API Data Tables")
+# --- Fetch Data ---------------------------------------------------------------------------------------------------
+df1 = fetch_and_decode_data(api1, start_date, end_date, "Interchain Token Service")
+df2 = fetch_and_decode_data(api2, start_date, end_date, "Axelar ITS Hub")
 
-tab1, tab2 = st.tabs(["🔹 API 1", "🔹 API 2"])
+# Merge into one table
+final_df = pd.concat([df1, df2], ignore_index=True)
 
-with tab1:
-    df1 = fetch_and_decode_data(api1, start_date, end_date)
-    st.dataframe(df1, use_container_width=True)
-
-with tab2:
-    df2 = fetch_and_decode_data(api2, start_date, end_date)
-    st.dataframe(df2, use_container_width=True)
+# --- Display Data ------------------------------------------------------------------------------------------------
+st.subheader("📋 Combined API Data Table")
+st.dataframe(final_df, use_container_width=True)
