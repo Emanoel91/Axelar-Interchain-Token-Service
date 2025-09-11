@@ -5,6 +5,8 @@ import plotly.express as px
 import plotly.graph_objects as go
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
+import requests
+import time
 import networkx as nx
 
 # --- Page Config ------------------------------------------------------------------------------------------------------
@@ -15,10 +17,10 @@ st.set_page_config(
 )
 
 # --- Title -----------------------------------------------------------------------------------------------------
-st.title("🚀Interchain Transfers")
+st.title("🚀 Interchain Transfers")
 
-st.info("📊Charts initially display data for a default time range. Select a custom range to view results for your desired period.")
-st.info("⏳On-chain data retrieval may take a few moments. Please wait while the results load.")
+st.info("📊 Charts initially display data for a default time range. Select a custom range to view results for your desired period.")
+st.info("⏳ On-chain data retrieval may take a few moments. Please wait while the results load.")
 
 # --- Sidebar Footer Slightly Left-Aligned ---
 st.sidebar.markdown(
@@ -93,6 +95,7 @@ conn = snowflake.connector.connect(
     database=database,
     schema=schema
 )
+
 # --- Date Inputs ---------------------------------------------------------------------------------------------------
 col1, col2, col3 = st.columns(3)
 
@@ -104,3 +107,58 @@ with col2:
 
 with col3:
     end_date = st.date_input("End Date", value=pd.to_datetime("2025-09-30"))
+
+
+# --- Function to fetch & decode API data --------------------------------------------------------------------------
+def fetch_and_decode_data(api_url, start_date, end_date):
+    """
+    Fetch and decode data from Axelar API and return DataFrame.
+    """
+
+    # --- Convert date inputs to unixtime (seconds) ---
+    from_time = int(time.mktime(start_date.timetuple()))
+    to_time = int(time.mktime(end_date.timetuple()))
+
+    # --- Build API URL with time range ---
+    url = f"{api_url}&fromTime={from_time}&toTime={to_time}"
+
+    # --- Fetch data ---
+    response = requests.get(url)
+    if response.status_code != 200:
+        st.error("❌ API call failed!")
+        return pd.DataFrame()
+
+    data = response.json().get("data", [])
+
+    if not data:
+        st.warning("⚠️ No data available for the selected range.")
+        return pd.DataFrame()
+
+    # --- Decode & Normalize ---
+    df = pd.DataFrame(data)
+
+    # Convert timestamp (ms) → datetime
+    df["date"] = pd.to_datetime(df["timestamp"], unit="ms")
+
+    # Reorder columns
+    df = df[["date", "volume", "num_txs"]]
+
+    return df
+
+
+# --- API Endpoints ------------------------------------------------------------------------------------------------
+api1 = "https://api.axelarscan.io/gmp/GMPChart?contractAddress=0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C"
+api2 = "https://api.axelarscan.io/gmp/GMPChart?contractAddress=axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr"
+
+# --- Display Data in Tabs -----------------------------------------------------------------------------------------
+st.subheader("📋 API Data Tables")
+
+tab1, tab2 = st.tabs(["🔹 API 1", "🔹 API 2"])
+
+with tab1:
+    df1 = fetch_and_decode_data(api1, start_date, end_date)
+    st.dataframe(df1, use_container_width=True)
+
+with tab2:
+    df2 = fetch_and_decode_data(api2, start_date, end_date)
+    st.dataframe(df2, use_container_width=True)
