@@ -6,7 +6,7 @@ import plotly.graph_objects as go
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import networkx as nx
-
+import requests
 # --- Page Config ------------------------------------------------------------------------------------------------------
 st.set_page_config(
     page_title="Axelar Interchain Token Service (ITS)",
