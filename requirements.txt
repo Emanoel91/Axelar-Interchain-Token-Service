@@ -3,3 +3,4 @@ snowflake-connector-python
 pandas
 plotly
 networkx
+pandasql
