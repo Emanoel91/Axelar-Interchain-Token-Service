@@ -108,13 +108,14 @@ with col2:
 with col3:
     end_date = st.date_input("End Date", value=pd.to_datetime("2025-09-30"))
 
-# --- API URLs --------------------------------------------------------------------------------------------------
+# --- API URLs ------------------------------------------------------------------------------------------
 URLS = {
-    "contract_1": "https://api.axelarscan.io/gmp/GMPChart?contractAddress=axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr",
-    "contract_2": "https://api.axelarscan.io/gmp/GMPChart?contractAddress=0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C"
+    "axelar": "https://api.axelarscan.io/gmp/GMPChart?contractAddress=axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr",
+    "evm": "https://api.axelarscan.io/gmp/GMPChart?contractAddress=0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C"
 }
 
-def fetch_and_decode(url: str) -> pd.DataFrame:
+@st.cache_data
+def fetch_and_decode(name: str, url: str) -> pd.DataFrame:
     """
     دریافت دیتا از API و تبدیل به DataFrame
     """
@@ -122,26 +123,26 @@ def fetch_and_decode(url: str) -> pd.DataFrame:
     resp.raise_for_status()
     json_data = resp.json()
     
-    # استخراج بخش data
     data = json_data.get("data", [])
-    
-    # تبدیل به DataFrame
     df = pd.DataFrame(data)
     
     if not df.empty:
-        # تبدیل timestamp از ms به datetime
         df["timestamp"] = pd.to_datetime(df["timestamp"], unit="ms")
-        df = df.rename(columns={"timestamp": "date", "volume": "volume", "num_txs": "transactions"})
+        df = df.rename(columns={
+            "timestamp": "date", 
+            "volume": "volume", 
+            "num_txs": "transactions"
+        })
+        df["contract"] = name  # اضافه کردن نام قرارداد
     
     return df
 
-# --- Run -------------------------------------------------------------------------------------------------------
-df_contract1 = fetch_and_decode(URLS["contract_1"])
-df_contract2 = fetch_and_decode(URLS["contract_2"])
+# --- Combine All Contracts ---------------------------------------------------------------------------
+dfs = []
+for name, url in URLS.items():
+    dfs.append(fetch_and_decode(name, url))
 
-# نمونه نمایش
-print("Contract 1:")
-print(df_contract1.head())
+df_all = pd.concat(dfs, ignore_index=True)
 
-print("\nContract 2:")
-print(df_contract2.head())
+# --- Display in Streamlit -----------------------------------------------------------------------------
+st.dataframe(df_all, use_container_width=True)
