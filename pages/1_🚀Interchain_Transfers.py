@@ -969,9 +969,53 @@ with col3:
     df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
     st.dataframe(df_display, use_container_width=True)
 
-df_paths['path'] = df_paths['path'].str.strip().str.lower()
-df_paths_stats['path'] = df_paths_stats['Path'].str.strip().str.lower()  # تغییر نام Path به path
+import pandas as pd
+import streamlit as st
+
+# --- مرحله 1: اطمینان از اینکه ستون مشترک path در هر دو جدول درست است ---
+# در df_paths جدول اول و دوم، ستون path وجود دارد
+df_paths['path'] = df_paths['path'].astype(str).str.strip().str.lower()
+
+# در df_paths_stats ستون Path را داریم، تبدیل به path و reset index
+df_paths_stats = df_paths_stats.copy()
+df_paths_stats['path'] = df_paths_stats['Path'].astype(str).str.strip().str.lower()
 df_paths_stats = df_paths_stats.drop(columns=['Path'])
+df_paths_stats = df_paths_stats.reset_index(drop=True)
+
+# --- مرحله 2: انتخاب ستون‌های مورد نیاز ---
+df_paths_subset = df_paths[['path', 'num_txs', 'volume']]
+
+# --- مرحله 3: merge ایمن بر اساس path ---
+df_merged = pd.merge(df_paths_subset, df_paths_stats, on='path', how='left')
+
+# --- مرحله 4: نام‌گذاری ستون‌ها ---
+df_merged = df_merged.rename(columns={
+    'path': 'Path',
+    'num_txs': 'Number of Transfers',
+    'volume': 'Volume of Transfers'
+})
+
+# --- مرحله 5: اطمینان از اینکه ستون‌های عددی درست هستند ---
+for col in ['Number of Transfers', 'Volume of Transfers', 'Number of Users', 'Total Gas Fee']:
+    if col in df_merged.columns:
+        df_merged[col] = pd.to_numeric(df_merged[col], errors='coerce')
+
+# --- مرحله 6: نمایش جدول در Streamlit با قالب‌بندی عددی ---
+st.dataframe(df_merged.style.format({
+    'Number of Transfers': "{:,}",
+    'Volume of Transfers': "{:,}",
+    'Number of Users': "{:,}",
+    'Total Gas Fee': "{:,}"
+}), use_container_width=True)
+
+# --- اختیاری: مرتب‌سازی جدول بر اساس Number of Transfers ---
+df_merged_sorted = df_merged.sort_values('Number of Transfers', ascending=False)
+st.dataframe(df_merged_sorted.style.format({
+    'Number of Transfers': "{:,}",
+    'Volume of Transfers': "{:,}",
+    'Number of Users': "{:,}",
+    'Total Gas Fee': "{:,}"
+}), use_container_width=True)
 
 # === Paths Charts ===
 col1, col2, col3 = st.columns(3)
