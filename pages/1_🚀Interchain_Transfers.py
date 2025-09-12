@@ -343,3 +343,24 @@ with col2:
     fig2.add_trace(go.Scatter(x=df_interchain_users_data["Date"], y=df_interchain_users_data["%Growth Rate"], name="%Growth Rate", mode="lines", yaxis="y2", line=dict(color="black")))
     fig2.update_layout(xaxis_title="", yaxis_title="wallet count",  yaxis2=dict(title="%", overlaying="y", side="right"), template="plotly_white")
     st.plotly_chart(fig2, use_container_width=True)
+
+col3, col4 = st.columns(2)
+
+with col3:
+    fig3 = go.Figure()
+    fig3.add_bar(x=df_interchain_fees_data["Date"], y=df_interchain_fees_data["Transfer Fees"], name="Fee", yaxis="y1", marker_color="#ff7f27")
+    fig3.add_trace(go.Scatter(x=df_interchain_fees_data["Date"], y=df_interchain_fees_data["Total Transfer Fees"], name="Total Fees", mode="lines", 
+                              yaxis="y2", line=dict(color="black")))
+    fig3.update_layout(title="Interchain Transfer Fees Over Time", yaxis=dict(title="$USD"), yaxis2=dict(title="$USD", overlaying="y", side="right"), xaxis=dict(title=""),
+        barmode="group", legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
+    st.plotly_chart(fig3, use_container_width=True)
+
+with col4:
+    fig4 = go.Figure()
+    fig4.add_trace(go.Scatter(x=df_interchain_fees_data["Date"], y=df_interchain_fees_data["Average Gas Fee"], name="Avg Gas Fee", mode="lines", 
+                              yaxis="y1", line=dict(color="blue")))
+    fig4.add_trace(go.Scatter(x=df_interchain_fees_data["Date"], y=df_interchain_fees_data["Median Gas Fee"], name="Median Gas Fee", mode="lines", 
+                              yaxis="y2", line=dict(color="green")))
+    fig4.update_layout(title="Average & Median Transfer Fees Over Time", yaxis=dict(title="$USD"), yaxis2=dict(title="$USD", overlaying="y", side="right"), xaxis=dict(title=""),
+        barmode="group", legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
+    st.plotly_chart(fig4, use_container_width=True)
