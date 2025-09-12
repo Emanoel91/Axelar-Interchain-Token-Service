@@ -4,4 +4,3 @@ pandas
 plotly
 networkx
 pandasql
-matplotlib
