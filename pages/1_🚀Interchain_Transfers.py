@@ -873,7 +873,7 @@ def load_paths_stats(start_date, end_date):
         ) 
 )
 
-SELECT (source_chain || '➡' || destination_chain) as "Path", count(distinct user) as "Number of Users", round(sum(fee)) as "Total Gas Fee"
+SELECT (source_chain || '➡' || destination_chain) as "Path", count(distinct user) as "Number of Users"
 FROM axelar_service
 where created_at::date>='{start_str}' and created_at::date<='{end_str}'
 group by 1
@@ -940,7 +940,7 @@ def load_top_paths_stats(start_date, end_date):
         ) 
 )
 
-SELECT (source_chain || '➡' || destination_chain) as "Path", count(distinct user) as "Number of Users", round(sum(fee)) as "Total Gas Fee"
+SELECT (source_chain || '➡' || destination_chain) as "Path", count(distinct user) as "Number of Users"
 FROM axelar_service
 where created_at::date>='{start_str}' and created_at::date<='{end_str}'
 group by 1
@@ -971,33 +971,33 @@ with col3:
 
 col1, col2, col3 = st.columns(3)
 
-# جدول اول: Paths by Transactions
+# Paths by Transactions
 with col1:
     st.subheader("Paths by Transactions")
     df_display1 = df_paths[["path", "num_txs"]].copy()
     df_display1 = df_display1.sort_values("num_txs", ascending=False).reset_index(drop=True)
-    df_display1.index = df_display1.index + 1  # اندیس از 1 شروع شود
-    df_display1["num_txs"] = df_display1["num_txs"].apply(lambda x: f"{x:,}")  # فرمت با ویرگول
+    df_display1.index = df_display1.index + 1  
+    df_display1["num_txs"] = df_display1["num_txs"].apply(lambda x: f"{x:,}")  
     df_display1 = df_display1.rename(columns={
         "path": "Path",
         "num_txs": "Total Number of Transfers"
     })
     st.dataframe(df_display1, use_container_width=True)
 
-# جدول دوم: Paths by Volume
+# Paths by Volume
 with col2:
     st.subheader("Paths by Volume")
     df_display2 = df_paths[["path", "volume"]].copy()
     df_display2 = df_display2.sort_values("volume", ascending=False).reset_index(drop=True)
-    df_display2.index = df_display2.index + 1  # اندیس از 1 شروع شود
-    df_display2["volume"] = df_display2["volume"].apply(lambda x: f"{x:,.2f}")  # فرمت با ویرگول و دو رقم اعشار
+    df_display2.index = df_display2.index + 1  
+    df_display2["volume"] = df_display2["volume"].apply(lambda x: f"{x:,.2f}") 
     df_display2 = df_display2.rename(columns={
         "path": "Path",
         "volume": "Total Volume of Transfers ($USD)"
     })
     st.dataframe(df_display2, use_container_width=True)
 
-# جدول سوم: Paths by Users
+# Paths by Users
 with col3:
     st.subheader("Paths by Users")
     df_display3 = df_paths_stats.copy()
@@ -1005,7 +1005,7 @@ with col3:
     df_display3 = df_display3.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
     st.dataframe(df_display3, use_container_width=True)
 
-# === Paths Charts ===
+# === Paths Charts ===================================================================================
 col1, col2, col3 = st.columns(3)
 with col1:
     top5 = df_paths.sort_values("num_txs", ascending=False).head(5)
