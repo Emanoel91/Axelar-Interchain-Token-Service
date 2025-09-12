@@ -191,15 +191,61 @@ agg_df["cum_num_txs"] = agg_df["num_txs"].cumsum()
 agg_df["cum_volume"] = agg_df["volume"].cumsum()
 
 # --- KPIs -----------------------------------------------------------------------------------------------------------
-col1, col2, col3 = st.columns(3)
-col1.metric(label="Total Number of Transfers", value=f"{agg_df['num_txs'].sum():,} Txns")
-col2.metric(label="Total Volume of Transfers", value=f"${round(agg_df['volume'].sum()):,}")
-col3.metric(label="Unique Users", value=f"{df_interchain_stats["Unique Users"][0]:,} wallets")
+card_style = """
+    <div style="
+        background-color: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+        ">
+        <h4 style="margin: 0; font-size: 20px; color: #555;">{label}</h4>
+        <p style="margin: 5px 0 0; font-size: 20px; font-weight: bold; color: #000;">{value}</p>
+    </div>
+"""
 
+# ردیف اول KPIها
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.markdown(card_style.format(
+        label="Total Number of Transfers",
+        value=f"{agg_df['num_txs'].sum():,} Txns"
+    ), unsafe_allow_html=True)
+
+with col2:
+    st.markdown(card_style.format(
+        label="Total Volume of Transfers",
+        value=f"${round(agg_df['volume'].sum()):,}"
+    ), unsafe_allow_html=True)
+
+with col3:
+    st.markdown(card_style.format(
+        label="Unique Users",
+        value=f"{df_interchain_stats['Unique Users'][0]:,} Wallets"
+    ), unsafe_allow_html=True)
+
+st.markdown("<br>", unsafe_allow_html=True)
+
+# ردیف دوم KPIها
 col4, col5, col6 = st.columns(3)
-col4.metric(label="Unique Paths", value=f"{df_interchain_stats["Paths"][0]:,}")
-col5.metric(label="Number of Tokens", value=f"{df_interchain_stats["Tokens"][0]:,}")
-col6.metric(label="Total Transfer Fees", value=f"${df_interchain_stats["Total Transfer Fees"][0]:,}")
+with col4:
+    st.markdown(card_style.format(
+        label="Unique Paths",
+        value=f"{df_interchain_stats['Paths'][0]:,}"
+    ), unsafe_allow_html=True)
+
+with col5:
+    st.markdown(card_style.format(
+        label="Number of Tokens",
+        value=f"{df_interchain_stats['Tokens'][0]:,}"
+    ), unsafe_allow_html=True)
+
+with col6:
+    st.markdown(card_style.format(
+        label="Total Transfer Fees",
+        value=f"${df_interchain_stats['Total Transfer Fees'][0]:,}"
+    ), unsafe_allow_html=True)
 
 # --- Plots ----------------------------------------------------------------------------------------------------------
 col1, col2 = st.columns(2)
