@@ -989,8 +989,8 @@ df_merged = df_merged.rename(columns={
 st.dataframe(df_merged.style.format({
     'Number of Transfers': "{:,}",
     'Volume of Transfers': "{:,}",
-    'Number of Users': "{:,}",
-    'Total Gas Fee': "{:,}"
+    "Number of Users": "{:,}",
+    "Total Gas Fee": "{:,}"
 }), use_container_width=True)
 
 # === Paths Charts ===
