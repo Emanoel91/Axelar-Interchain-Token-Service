@@ -332,7 +332,7 @@ with col1:
     fig_b1 = go.Figure()
     # Stacked Bars
     fig_b1.add_trace(go.Bar(x=df_interchain_users_data["Date"], y=df_interchain_users_data["New Users"], name="New Users", marker_color="#0ed145"))
-    fig_b1.add_trace(go.Bar(x=df_interchain_users_data["Date"], y=df_interchain_users_data["Returning Users"], name="Returning Users", marker_color="ff7f27"))
+    fig_b1.add_trace(go.Bar(x=df_interchain_users_data["Date"], y=df_interchain_users_data["Returning Users"], name="Returning Users", marker_color="#ff7f27"))
     fig_b1.add_trace(go.Scatter(x=df_interchain_users_data["Date"], y=df_interchain_users_data["Total Users"], name="Total Users", mode="lines", line=dict(color="black", width=2)))
     fig_b1.update_layout(barmode="stack", title="Number of Users Over Time", yaxis=dict(title="Wallet count"),
         legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5))
