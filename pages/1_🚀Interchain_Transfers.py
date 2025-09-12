@@ -788,16 +788,22 @@ df_destination_chains_stats = load_destination_chains_stats(start_date, end_date
 df_top_destination_chains_stats = load_top_destination_chains_stats(start_date, end_date)
 
 # === Destination Chains Tables =========================================================
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
     st.subheader("Destination Chains by Transactions")
     st.dataframe(df_destinations.sort_values("num_txs", ascending=False).reset_index(drop=True))
 with col2:
     st.subheader("Destination Chains by Volume")
     st.dataframe(df_destinations.sort_values("volume", ascending=False).reset_index(drop=True))
+with col3:
+    st.subheader("Destination Chains by User")
+    df_display = df_destination_chains_stats.copy()
+    df_display.index = df_display.index + 1
+    df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
+    st.dataframe(df_display, use_container_width=True)
 
 # === Destination Chains Charts ===
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
     top5 = df_destinations.sort_values("num_txs", ascending=False).head(5)
     fig = px.bar(top5, x="destination_chain", y="num_txs", title="Top 5 Destination Chains by Transactions", text="num_txs")
@@ -805,6 +811,9 @@ with col1:
 with col2:
     top5 = df_destinations.sort_values("volume", ascending=False).head(5)
     fig = px.bar(top5, x="destination_chain", y="volume", title="Top 5 Destination Chains by Volume", text="volume")
+    st.plotly_chart(fig, use_container_width=True)
+with col3:
+    fig = px.bar(df_top_destination_chains_stats, x="Destination Chain", y="Number of Users", title="Top 5 Destination Chains by Users", text="Number of Users")
     st.plotly_chart(fig, use_container_width=True)
 
 # ------- Path: Snowflake ------------------------------------
