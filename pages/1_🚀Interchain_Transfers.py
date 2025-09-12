@@ -969,6 +969,35 @@ with col3:
     df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
     st.dataframe(df_display, use_container_width=True)
 
+# ابتدا ستون‌های مورد نیاز را از df_paths انتخاب می‌کنیم
+df_paths_subset = df_paths[['source_chain', 'num_txs', 'volume']]
+
+# سپس df_paths_stats را آماده می‌کنیم
+df_stats = df_paths_stats.copy()
+df_stats.index = df_stats.index + 1  # اگر لازم است
+df_stats = df_stats.reset_index(drop=True)
+
+# حالا دو DataFrame را بر اساس 'source_chain' ترکیب می‌کنیم
+df_merged = pd.merge(df_paths_subset, df_stats, left_on='source_chain', right_on='Source Chain')
+
+# ستون‌ها را مرتب می‌کنیم و نام‌گذاری می‌کنیم
+df_merged = df_merged.rename(columns={
+    'num_txs': 'Number of Transfers',
+    'volume': 'Volume of Transfers',
+    'Number of Users': 'Number of Users',
+    'Total Gas Fee': 'Total Gas Fee',
+    'source_chain': 'Source Chain'
+})
+
+# نمایش در Streamlit
+import streamlit as st
+st.dataframe(df_merged.style.format({
+    'Number of Transfers': "{:,}",
+    'Volume of Transfers': "{:,}",
+    'Number of Users': "{:,}",
+    'Total Gas Fee': "{:,}"
+}), use_container_width=True)
+
 # === Paths Charts ===
 col1, col2, col3 = st.columns(3)
 with col1:
