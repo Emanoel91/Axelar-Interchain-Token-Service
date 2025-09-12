@@ -340,6 +340,5 @@ with col1:
 
 with col2:
     fig2 = px.area(df_interchain_users_data, x="Date", y="User Growth", title="Interchain Users Growth Over Time")
-    fig2.add_trace(go.Scatter(x=df_interchain_users_data["Date"], y=df_interchain_users_data["User Growth"], name="%User Growth", mode="lines", yaxis="y2", line=dict(color="black")))
-    fig2.update_layout(xaxis_title="", yaxis_title="%", yaxis2=dict(title="% User Growth", overlaying="y", side="right"), template="plotly_white")
+    fig2.update_layout(xaxis_title="", yaxis_title="%", overlaying="y", side="right"), template="plotly_white")
     st.plotly_chart(fig2, use_container_width=True)
