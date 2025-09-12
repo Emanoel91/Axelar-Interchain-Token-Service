@@ -955,16 +955,22 @@ df_paths_stats = load_paths_stats(start_date, end_date)
 df_top_paths_stats = load_top_paths_stats(start_date, end_date)
 
 # === Paths Tables ======================================================================
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
     st.subheader("Paths by Transactions")
     st.dataframe(df_paths.sort_values("num_txs", ascending=False).reset_index(drop=True))
 with col2:
     st.subheader("Paths by Volume")
     st.dataframe(df_paths.sort_values("volume", ascending=False).reset_index(drop=True))
+with col3:
+    st.subheader("Paths by Users")
+    df_display = df_paths_stats.copy()
+    df_display.index = df_display.index + 1
+    df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
+    st.dataframe(df_display, use_container_width=True)
 
 # === Paths Charts ===
-col1, col2 = st.columns(2)
+col1, col2, col3 = st.columns(3)
 with col1:
     top5 = df_paths.sort_values("num_txs", ascending=False).head(5)
     fig = px.bar(top5, x="path", y="num_txs", title="Top 5 Paths by Transactions", text="num_txs")
@@ -972,4 +978,7 @@ with col1:
 with col2:
     top5 = df_paths.sort_values("volume", ascending=False).head(5)
     fig = px.bar(top5, x="path", y="volume", title="Top 5 Paths by Volume", text="volume")
+    st.plotly_chart(fig, use_container_width=True)
+with col3:
+    fig = px.bar(df_top_paths_stats, x="Path", y="Number of Users", title="Top 5 Paths by Users", text="Number of Users")
     st.plotly_chart(fig, use_container_width=True)
