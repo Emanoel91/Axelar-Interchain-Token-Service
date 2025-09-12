@@ -322,9 +322,50 @@ def load_interchain_fees_data(timeframe, start_date, end_date):
     df = pd.read_sql(query, conn)
     return df
 
+@st.cache_data
+def load_interchain_fees_stats(start_date, end_date):
+    
+    start_str = start_date.strftime("%Y-%m-%d")
+    end_str = end_date.strftime("%Y-%m-%d")
+
+    query = f"""
+    WITH axelar_service AS (
+  
+  SELECT  
+    created_at, COALESCE(CASE 
+        WHEN IS_ARRAY(data:gas:gas_used_amount) OR IS_OBJECT(data:gas:gas_used_amount) 
+          OR IS_ARRAY(data:gas_price_rate:source_token.token_price.usd) OR IS_OBJECT(data:gas_price_rate:source_token.token_price.usd) 
+        THEN NULL
+        WHEN TRY_TO_DOUBLE(data:gas:gas_used_amount::STRING) IS NOT NULL 
+          AND TRY_TO_DOUBLE(data:gas_price_rate:source_token.token_price.usd::STRING) IS NOT NULL 
+        THEN TRY_TO_DOUBLE(data:gas:gas_used_amount::STRING) * TRY_TO_DOUBLE(data:gas_price_rate:source_token.token_price.usd::STRING)
+        ELSE NULL
+      END, CASE 
+        WHEN IS_ARRAY(data:fees:express_fee_usd) OR IS_OBJECT(data:fees:express_fee_usd) THEN NULL
+        WHEN TRY_TO_DOUBLE(data:fees:express_fee_usd::STRING) IS NOT NULL THEN TRY_TO_DOUBLE(data:fees:express_fee_usd::STRING)
+        ELSE NULL
+      END) AS fee,
+  FROM axelar.axelscan.fact_gmp 
+  WHERE status = 'executed'
+    AND simplified_status = 'received'
+    AND (
+        data:approved:returnValues:contractAddress ilike '%0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C%' -- Interchain Token Service
+        or data:approved:returnValues:contractAddress ilike '%axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr%' -- Axelar ITS Hub
+        ) 
+)
+
+SELECT round(avg(fee),2) as "Average Gas Fee", round(median(fee),2) as "Median Gas Fee"
+FROM axelar_service
+where created_at::date>='{start_str}' and created_at::date<='{end_str}'
+    """
+
+    df = pd.read_sql(query, conn)
+    return df
+
 # --- Load Data --------------------------------------------------------------------------------------------------------------------
 df_interchain_users_data = load_interchain_users_data(timeframe, start_date, end_date)
 df_interchain_fees_data = load_interchain_fees_data(timeframe, start_date, end_date)
+df_interchain_fees_stats = load_interchain_fees_stats(start_date, end_date)
 # ----------------------------------------------------------------------------------------------------------------------------------
 col1, col2 = st.columns(2)
 
@@ -344,23 +385,45 @@ with col2:
     fig2.update_layout(xaxis_title="", yaxis_title="wallet count",  yaxis2=dict(title="%", overlaying="y", side="right"), template="plotly_white")
     st.plotly_chart(fig2, use_container_width=True)
 
-col3, col4 = st.columns(2)
+card_style = """
+    <div style="
+        background-color: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+        ">
+        <h4 style="margin: 0; font-size: 20px; color: #555;">{label}</h4>
+        <p style="margin: 5px 0 0; font-size: 20px; font-weight: bold; color: #000;">{value}</p>
+    </div>
+"""
 
+col3, col4 = st.columns(2)
 with col3:
-    fig3 = go.Figure()
-    fig3.add_bar(x=df_interchain_fees_data["Date"], y=df_interchain_fees_data["Transfer Fees"], name="Fee", yaxis="y1", marker_color="#ff7f27")
-    fig3.add_trace(go.Scatter(x=df_interchain_fees_data["Date"], y=df_interchain_fees_data["Total Transfer Fees"], name="Total Fees", mode="lines", 
-                              yaxis="y2", line=dict(color="black")))
-    fig3.update_layout(title="Interchain Transfer Fees Over Time", yaxis=dict(title="$USD"), yaxis2=dict(title="$USD", overlaying="y", side="right"), xaxis=dict(title=""),
-        barmode="group", legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
-    st.plotly_chart(fig3, use_container_width=True)
+    st.markdown(card_style.format(label="Average Gas Fee", value=f"${df_interchain_fees_stats['Avg Gas Fee'][0]:,}"), unsafe_allow_html=True)
 
 with col4:
-    fig4 = go.Figure()
-    fig4.add_trace(go.Scatter(x=df_interchain_fees_data["Date"], y=df_interchain_fees_data["Average Gas Fee"], name="Avg Gas Fee", mode="lines", 
-                              yaxis="y1", line=dict(color="blue")))
-    fig4.add_trace(go.Scatter(x=df_interchain_fees_data["Date"], y=df_interchain_fees_data["Median Gas Fee"], name="Median Gas Fee", mode="lines", 
-                              yaxis="y2", line=dict(color="green")))
-    fig4.update_layout(title="Average & Median Transfer Fees Over Time", yaxis=dict(title="$USD"), yaxis2=dict(title="$USD", overlaying="y", side="right"), xaxis=dict(title=""),
+    st.markdown(card_style.format(label="Median Gas Fee", value=f"${df_interchain_fees_stats['Median Gas Fee'][0]:,}"), unsafe_allow_html=True)
+    
+
+col5, col6 = st.columns(2)
+
+with col5:
+    fig5 = go.Figure()
+    fig5.add_bar(x=df_interchain_fees_data["Date"], y=df_interchain_fees_data["Transfer Fees"], name="Fee", yaxis="y1", marker_color="#ff7f27")
+    fig5.add_trace(go.Scatter(x=df_interchain_fees_data["Date"], y=df_interchain_fees_data["Total Transfer Fees"], name="Total Fees", mode="lines", 
+                              yaxis="y2", line=dict(color="black")))
+    fig5.update_layout(title="Interchain Transfer Fees Over Time", yaxis=dict(title="$USD"), yaxis2=dict(title="$USD", overlaying="y", side="right"), xaxis=dict(title=""),
         barmode="group", legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
-    st.plotly_chart(fig4, use_container_width=True)
+    st.plotly_chart(fig5, use_container_width=True)
+
+with col6:
+    fig6 = go.Figure()
+    fig6.add_trace(go.Scatter(x=df_interchain_fees_data["Date"], y=df_interchain_fees_data["Average Gas Fee"], name="Avg Gas Fee", mode="lines", 
+                              yaxis="y1", line=dict(color="blue")))
+    fig6.add_trace(go.Scatter(x=df_interchain_fees_data["Date"], y=df_interchain_fees_data["Median Gas Fee"], name="Median Gas Fee", mode="lines", 
+                              yaxis="y2", line=dict(color="green")))
+    fig6.update_layout(title="Average & Median Transfer Fees Over Time", yaxis=dict(title="$USD"), yaxis2=dict(title="$USD", overlaying="y", side="right"), xaxis=dict(title=""),
+        barmode="group", legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
+    st.plotly_chart(fig6, use_container_width=True)
