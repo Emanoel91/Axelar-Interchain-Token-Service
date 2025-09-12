@@ -973,36 +973,6 @@ df_paths['path'] = df_paths['path'].str.strip().str.lower()
 df_paths_stats['path'] = df_paths_stats['Path'].str.strip().str.lower()  # تغییر نام Path به path
 df_paths_stats = df_paths_stats.drop(columns=['Path'])
 
-# --- مرحله 2: انتخاب ستون‌های مورد نیاز ---
-df_paths_subset = df_paths[['path', 'num_txs', 'volume']]
-
-# --- مرحله 3: merge دو جدول بر اساس path ---
-df_merged = pd.merge(df_paths_subset, df_paths_stats, on='path', how='left')
-
-# --- مرحله 4: نام‌گذاری مجدد ستون‌ها برای نمایش ---
-df_merged = df_merged.rename(columns={
-    'path': 'Path',
-    'num_txs': 'Number of Transfers',
-    'volume': 'Volume of Transfers'
-})
-
-# --- مرحله 5: نمایش جدول در Streamlit با قالب‌بندی عددی ---
-st.dataframe(df_merged.style.format({
-    'Number of Transfers': "{:,}",
-    'Volume of Transfers': "{:,}",
-    'Number of Users': "{:,}",
-    'Total Gas Fee': "{:,}"
-}), use_container_width=True)
-
-# --- اختیاری: مرتب‌سازی جدول بر اساس Number of Transfers ---
-df_merged_sorted = df_merged.sort_values('Number of Transfers', ascending=False)
-st.dataframe(df_merged_sorted.style.format({
-    'Number of Transfers': "{:,}",
-    'Volume of Transfers': "{:,}",
-    'Number of Users': "{:,}",
-    'Total Gas Fee': "{:,}"
-}), use_container_width=True)
-
 # === Paths Charts ===
 col1, col2, col3 = st.columns(3)
 with col1:
