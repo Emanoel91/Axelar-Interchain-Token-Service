@@ -401,7 +401,7 @@ card_style = """
 
 col3, col4 = st.columns(2)
 with col3:
-    st.markdown(card_style.format(label="Average Gas Fee", value=f"${df_interchain_fees_stats['Avg Gas Fee'][0]:,}"), unsafe_allow_html=True)
+    st.markdown(card_style.format(label="Average Gas Fee", value=f"${df_interchain_fees_stats['Average Gas Fee'][0]:,}"), unsafe_allow_html=True)
 
 with col4:
     st.markdown(card_style.format(label="Median Gas Fee", value=f"${df_interchain_fees_stats['Median Gas Fee'][0]:,}"), unsafe_allow_html=True)
