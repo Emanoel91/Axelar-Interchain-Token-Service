@@ -969,52 +969,42 @@ with col3:
     df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
     st.dataframe(df_display, use_container_width=True)
 
-# --- مرحله 1: تعریف تابع برای استانداردسازی path ---
-def normalize_path(path):
-    path = str(path).strip()                    # حذف فاصله اضافی
-    path = path.replace('➡', '->')             # همه فلش‌ها را یکسان می‌کنیم
-    path = path.replace('→', '->')
-    path = path.replace(' - >', '->').replace('-> ', '->')  # حذف فاصله قبل/بعد فلش
-    return path.lower()                         # تبدیل به حروف کوچک
+col1, col2, col3 = st.columns(3)
 
-# --- مرحله 2: اعمال استانداردسازی روی هر دو جدول ---
-df_paths['path_norm'] = df_paths['path'].apply(normalize_path)
-df_paths_stats['path_norm'] = df_paths_stats['Path'].apply(normalize_path)
+# جدول اول: Paths by Transactions
+with col1:
+    st.subheader("Paths by Transactions")
+    df_display1 = df_paths[["path", "num_txs"]].copy()
+    df_display1 = df_display1.sort_values("num_txs", ascending=False).reset_index(drop=True)
+    df_display1.index = df_display1.index + 1  # اندیس از 1 شروع شود
+    df_display1["num_txs"] = df_display1["num_txs"].apply(lambda x: f"{x:,}")  # فرمت با ویرگول
+    df_display1 = df_display1.rename(columns={
+        "path": "Path",
+        "num_txs": "Total Number of Transfers"
+    })
+    st.dataframe(df_display1, use_container_width=True)
 
-# --- مرحله 3: انتخاب ستون‌های مورد نیاز ---
-df_paths_subset = df_paths[['path', 'num_txs', 'volume', 'path_norm']]
-df_paths_stats_subset = df_paths_stats[['Number of Users', 'Total Gas Fee', 'path_norm']]
+# جدول دوم: Paths by Volume
+with col2:
+    st.subheader("Paths by Volume")
+    df_display2 = df_paths[["path", "volume"]].copy()
+    df_display2 = df_display2.sort_values("volume", ascending=False).reset_index(drop=True)
+    df_display2.index = df_display2.index + 1  # اندیس از 1 شروع شود
+    df_display2["volume"] = df_display2["volume"].apply(lambda x: f"{x:,.2f}")  # فرمت با ویرگول و دو رقم اعشار
+    df_display2 = df_display2.rename(columns={
+        "path": "Path",
+        "volume": "Total Volume of Transfers ($USD)"
+    })
+    st.dataframe(df_display2, use_container_width=True)
 
-# --- مرحله 4: merge بر اساس path_norm ---
-df_merged = pd.merge(
-    df_paths_subset,
-    df_paths_stats_subset,
-    on='path_norm',
-    how='left'
-)
+# جدول سوم: Paths by Users
+with col3:
+    st.subheader("Paths by Users")
+    df_display3 = df_paths_stats.copy()
+    df_display3.index = df_display3.index + 1
+    df_display3 = df_display3.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
+    st.dataframe(df_display3, use_container_width=True)
 
-# --- مرحله 5: نام‌گذاری ستون‌ها برای نمایش ---
-df_merged = df_merged.rename(columns={
-    'path': 'Path',
-    'num_txs': 'Number of Transfers',
-    'volume': 'Volume of Transfers'
-})
-
-# --- مرحله 6: تبدیل ستون‌های عددی به numeric ---
-for col in ['Number of Transfers', 'Volume of Transfers', 'Number of Users', 'Total Gas Fee']:
-    if col in df_merged.columns:
-        df_merged[col] = pd.to_numeric(df_merged[col], errors='coerce')
-
-# --- مرحله 7: قالب‌بندی عددی با apply + map ---
-df_display = df_merged.apply(lambda col: col.map(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x))
-
-# --- مرحله 8: حذف ستون path_norm و نمایش جدول ---
-df_display = df_display.drop(columns=['path_norm'], errors='ignore')
-st.dataframe(df_display, width='stretch')
-
-# --- اختیاری: مرتب‌سازی بر اساس Number of Transfers ---
-df_display_sorted = df_display.sort_values('Number of Transfers', ascending=False)
-st.dataframe(df_display_sorted, width='stretch')
 # === Paths Charts ===
 col1, col2, col3 = st.columns(3)
 with col1:
