@@ -205,47 +205,27 @@ card_style = """
     </div>
 """
 
-# ردیف اول KPIها
 col1, col2, col3 = st.columns(3)
 with col1:
-    st.markdown(card_style.format(
-        label="Total Number of Transfers",
-        value=f"{agg_df['num_txs'].sum():,} Txns"
-    ), unsafe_allow_html=True)
+    st.markdown(card_style.format(label="Total Number of Transfers", value=f"{agg_df['num_txs'].sum():,} Txns"), unsafe_allow_html=True)
 
 with col2:
-    st.markdown(card_style.format(
-        label="Total Volume of Transfers",
-        value=f"${round(agg_df['volume'].sum()):,}"
-    ), unsafe_allow_html=True)
+    st.markdown(card_style.format(label="Total Volume of Transfers", value=f"${round(agg_df['volume'].sum()):,}"), unsafe_allow_html=True)
 
 with col3:
-    st.markdown(card_style.format(
-        label="Unique Users",
-        value=f"{df_interchain_stats['Unique Users'][0]:,} Wallets"
-    ), unsafe_allow_html=True)
+    st.markdown(card_style.format(label="Unique Users", value=f"{df_interchain_stats['Unique Users'][0]:,} Wallets"), unsafe_allow_html=True)
 
 st.markdown("<br>", unsafe_allow_html=True)
 
-# ردیف دوم KPIها
 col4, col5, col6 = st.columns(3)
 with col4:
-    st.markdown(card_style.format(
-        label="Unique Paths",
-        value=f"{df_interchain_stats['Paths'][0]:,}"
-    ), unsafe_allow_html=True)
+    st.markdown(card_style.format(label="Unique Paths", value=f"{df_interchain_stats['Paths'][0]:,}"), unsafe_allow_html=True)
 
 with col5:
-    st.markdown(card_style.format(
-        label="Number of Tokens",
-        value=f"{df_interchain_stats['Tokens'][0]:,}"
-    ), unsafe_allow_html=True)
+    st.markdown(card_style.format(label="Number of Tokens", value=f"{df_interchain_stats['Tokens'][0]:,}"), unsafe_allow_html=True)
 
 with col6:
-    st.markdown(card_style.format(
-        label="Total Transfer Fees",
-        value=f"${df_interchain_stats['Total Transfer Fees'][0]:,}"
-    ), unsafe_allow_html=True)
+    st.markdown(card_style.format(label="Total Transfer Fees", value=f"${df_interchain_stats['Total Transfer Fees'][0]:,}"), unsafe_allow_html=True)
 
 # --- Plots ----------------------------------------------------------------------------------------------------------
 col1, col2 = st.columns(2)
