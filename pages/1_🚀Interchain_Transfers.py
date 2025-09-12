@@ -428,3 +428,117 @@ with col6:
         barmode="group", legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
     st.plotly_chart(fig6, use_container_width=True)
 
+
+# ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# === تبدیل تاریخ به timestamp ===
+def to_timestamp(date):
+    return int(pd.Timestamp(date).timestamp())
+
+@st.cache_data
+def load_chain_stats(start_date, end_date):
+    from_time = to_timestamp(start_date)
+    to_time = to_timestamp(end_date)
+
+    api_urls = [
+        f"https://api.axelarscan.io/gmp/GMPStatsByChains?contractAddress=0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C&fromTime={from_time}&toTime={to_time}",
+        f"https://api.axelarscan.io/gmp/GMPStatsByChains?contractAddress=axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr&fromTime={from_time}&toTime={to_time}"
+    ]
+
+    all_sources = []
+    all_destinations = []
+    all_paths = []
+
+    for url in api_urls:
+        resp = requests.get(url)
+        if resp.status_code == 200:
+            data = resp.json()["source_chains"]
+            for s in data:
+                # source chain aggregation
+                all_sources.append({
+                    "source_chain": s["key"],
+                    "num_txs": s.get("num_txs", 0),
+                    "volume": s.get("volume", 0.0)
+                })
+                # destination chain aggregation
+                for d in s["destination_chains"]:
+                    all_destinations.append({
+                        "destination_chain": d["key"],
+                        "num_txs": d.get("num_txs", 0),
+                        "volume": d.get("volume", 0.0)
+                    })
+                    # paths aggregation
+                    all_paths.append({
+                        "path": f"{s['key']} ➡ {d['key']}",
+                        "num_txs": d.get("num_txs", 0),
+                        "volume": d.get("volume", 0.0)
+                    })
+
+    df_sources = pd.DataFrame(all_sources).groupby("source_chain", as_index=False).sum()
+    df_destinations = pd.DataFrame(all_destinations).groupby("destination_chain", as_index=False).sum()
+    df_paths = pd.DataFrame(all_paths).groupby("path", as_index=False).sum()
+
+    return df_sources, df_destinations, df_paths
+
+# --- Load Data ---
+
+df_sources, df_destinations, df_paths = load_chain_stats(start_date, end_date)
+
+# === Source Chains Tables ===
+col1, col2 = st.columns(2)
+with col1:
+    st.subheader("Source Chains by Transactions")
+    st.dataframe(df_sources.sort_values("num_txs", ascending=False).reset_index(drop=True))
+with col2:
+    st.subheader("Source Chains by Volume")
+    st.dataframe(df_sources.sort_values("volume", ascending=False).reset_index(drop=True))
+
+# === Source Chains Charts ===
+col1, col2 = st.columns(2)
+with col1:
+    top5 = df_sources.sort_values("num_txs", ascending=False).head(5)
+    fig = px.bar(top5, x="source_chain", y="num_txs", title="Top 5 Source Chains by Transactions", text="num_txs")
+    st.plotly_chart(fig, use_container_width=True)
+with col2:
+    top5 = df_sources.sort_values("volume", ascending=False).head(5)
+    fig = px.bar(top5, x="source_chain", y="volume", title="Top 5 Source Chains by Volume", text="volume")
+    st.plotly_chart(fig, use_container_width=True)
+
+# === Destination Chains Tables ===
+col1, col2 = st.columns(2)
+with col1:
+    st.subheader("Destination Chains by Transactions")
+    st.dataframe(df_destinations.sort_values("num_txs", ascending=False).reset_index(drop=True))
+with col2:
+    st.subheader("Destination Chains by Volume")
+    st.dataframe(df_destinations.sort_values("volume", ascending=False).reset_index(drop=True))
+
+# === Destination Chains Charts ===
+col1, col2 = st.columns(2)
+with col1:
+    top5 = df_destinations.sort_values("num_txs", ascending=False).head(5)
+    fig = px.bar(top5, x="destination_chain", y="num_txs", title="Top 5 Destination Chains by Transactions", text="num_txs")
+    st.plotly_chart(fig, use_container_width=True)
+with col2:
+    top5 = df_destinations.sort_values("volume", ascending=False).head(5)
+    fig = px.bar(top5, x="destination_chain", y="volume", title="Top 5 Destination Chains by Volume", text="volume")
+    st.plotly_chart(fig, use_container_width=True)
+
+# === Paths Tables ===
+col1, col2 = st.columns(2)
+with col1:
+    st.subheader("Paths by Transactions")
+    st.dataframe(df_paths.sort_values("num_txs", ascending=False).reset_index(drop=True))
+with col2:
+    st.subheader("Paths by Volume")
+    st.dataframe(df_paths.sort_values("volume", ascending=False).reset_index(drop=True))
+
+# === Paths Charts ===
+col1, col2 = st.columns(2)
+with col1:
+    top5 = df_paths.sort_values("num_txs", ascending=False).head(5)
+    fig = px.bar(top5, x="path", y="num_txs", title="Top 5 Paths by Transactions", text="num_txs")
+    st.plotly_chart(fig, use_container_width=True)
+with col2:
+    top5 = df_paths.sort_values("volume", ascending=False).head(5)
+    fig = px.bar(top5, x="path", y="volume", title="Top 5 Paths by Volume", text="volume")
+    st.plotly_chart(fig, use_container_width=True)
