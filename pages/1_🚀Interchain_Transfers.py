@@ -649,6 +649,31 @@ with col3:
     fig = px.bar(df_Top_source_chains_stats, x="Source Chain", y="Number of Users", title="Top 5 Source Chains by Users", text="Number of Users")
     st.plotly_chart(fig, use_container_width=True)
 
+# تغییر نام ستون در جدول سوم
+df_paths_stats = df_paths_stats.rename(columns={'Source Chain': 'source_chain'})
+
+# انتخاب ستون‌های مورد نیاز از جدول اول/دوم
+df_paths_subset = df_paths[['source_chain', 'num_txs', 'volume']]
+
+# merge بر اساس source_chain
+df_merged = pd.merge(df_paths_subset, df_paths_stats, on='source_chain', how='left')
+
+# تغییر نام ستون‌ها برای نمایش نهایی
+df_merged = df_merged.rename(columns={
+    'source_chain': 'Source Chain',
+    'num_txs': 'Number of Transfers',
+    'volume': 'Volume of Transfers'
+})
+
+# نمایش در Streamlit با قالب‌بندی عددی
+import streamlit as st
+st.dataframe(df_merged.style.format({
+    'Number of Transfers': "{:,}",
+    'Volume of Transfers': "{:,}",
+    'Number of Users': "{:,}",
+    'Total Gas Fee': "{:,}"
+}), use_container_width=True)
+
 # ------- Destination Chains: Snowflake ------------------------------------
 @st.cache_data
 def load_destination_chains_stats(start_date, end_date):
@@ -968,31 +993,6 @@ with col3:
     df_display.index = df_display.index + 1
     df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
     st.dataframe(df_display, use_container_width=True)
-
-# تغییر نام ستون در جدول سوم
-df_paths_stats = df_paths_stats.rename(columns={'Source Chain': 'source_chain'})
-
-# انتخاب ستون‌های مورد نیاز از جدول اول/دوم
-df_paths_subset = df_paths[['source_chain', 'num_txs', 'volume']]
-
-# merge بر اساس source_chain
-df_merged = pd.merge(df_paths_subset, df_paths_stats, on='source_chain', how='left')
-
-# تغییر نام ستون‌ها برای نمایش نهایی
-df_merged = df_merged.rename(columns={
-    'source_chain': 'Source Chain',
-    'num_txs': 'Number of Transfers',
-    'volume': 'Volume of Transfers'
-})
-
-# نمایش در Streamlit با قالب‌بندی عددی
-import streamlit as st
-st.dataframe(df_merged.style.format({
-    'Number of Transfers': "{:,}",
-    'Volume of Transfers': "{:,}",
-    'Number of Users': "{:,}",
-    'Total Gas Fee': "{:,}"
-}), use_container_width=True)
 
 # === Paths Charts ===
 col1, col2, col3 = st.columns(3)
