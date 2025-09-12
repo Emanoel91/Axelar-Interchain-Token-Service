@@ -429,90 +429,53 @@ with col6:
     st.plotly_chart(fig6, use_container_width=True)
 
 # ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# === تبدیل تاریخ به timestamp ===
-"path": f"{s['key']} ➡ {d['key']}",
-"num_txs": d.get("num_txs", 0),
-"volume": d.get("volume", 0.0)
-})
-
-
-df_sources = pd.DataFrame(all_sources).groupby("source_chain", as_index=False).sum()
-df_destinations = pd.DataFrame(all_destinations).groupby("destination_chain", as_index=False).sum()
-df_paths = pd.DataFrame(all_paths).groupby("path", as_index=False).sum()
-
-
-return df_sources, df_destinations, df_paths
-
-
-# --- Load Data ---
-start_date = st.date_input("Start Date", value=pd.to_datetime("2024-01-01"))
-end_date = st.date_input("End Date", value=pd.to_datetime("2025-09-30"))
-
-
-df_sources, df_destinations, df_paths = load_chain_stats(start_date, end_date)
-
-
-# === Source Chains Tables ===
+# ------------------ Helper functions ------------------
+# ------------------ Row 4: Top-5 Destination Charts ------------------
 col1, col2 = st.columns(2)
 with col1:
-st.subheader("Source Chains by Transactions")
-st.dataframe(df_sources.sort_values("num_txs", ascending=False).reset_index(drop=True))
-with col2:
-st.subheader("Source Chains by Volume")
-st.dataframe(df_sources.sort_values("volume", ascending=False).reset_index(drop=True))
-
-
-# === Source Chains Charts ===
-col1, col2 = st.columns(2)
-with col1:
-top5 = df_sources.sort_values("num_txs", ascending=False).head(5)
-fig = px.bar(top5, x="source_chain", y="num_txs", title="Top 5 Source Chains by Transactions", text="num_txs")
+st.markdown("**Top 5 destination chains — by transactions**")
+top = df_dest.sort_values("num_txs", ascending=False).head(5)
+if not top.empty:
+fig = px.bar(top, x="destination_chain", y="num_txs", text="num_txs", title="Top 5 Destination Chains by Transactions")
 st.plotly_chart(fig, use_container_width=True)
+else:
+st.info("No data for Top 5 by transactions")
 with col2:
-top5 = df_sources.sort_values("volume", ascending=False).head(5)
-fig = px.bar(top5, x="source_chain", y="volume", title="Top 5 Source Chains by Volume", text="volume")
+st.markdown("**Top 5 destination chains — by volume**")
+top = df_dest.sort_values("volume", ascending=False).head(5)
+if not top.empty:
+fig = px.bar(top, x="destination_chain", y="volume", text="volume", title="Top 5 Destination Chains by Volume")
 st.plotly_chart(fig, use_container_width=True)
+else:
+st.info("No data for Top 5 by volume")
 
 
-# === Destination Chains Tables ===
+# ------------------ Row 5: Paths tables ------------------
+st.subheader("Paths (source ➡ destination) — ranked")
 col1, col2 = st.columns(2)
 with col1:
-st.subheader("Destination Chains by Transactions")
-st.dataframe(df_destinations.sort_values("num_txs", ascending=False).reset_index(drop=True))
-with col2:
-st.subheader("Destination Chains by Volume")
-st.dataframe(df_destinations.sort_values("volume", ascending=False).reset_index(drop=True))
-
-
-# === Destination Chains Charts ===
-col1, col2 = st.columns(2)
-with col1:
-top5 = df_destinations.sort_values("num_txs", ascending=False).head(5)
-fig = px.bar(top5, x="destination_chain", y="num_txs", title="Top 5 Destination Chains by Transactions", text="num_txs")
-st.plotly_chart(fig, use_container_width=True)
-with col2:
-top5 = df_destinations.sort_values("volume", ascending=False).head(5)
-fig = px.bar(top5, x="destination_chain", y="volume", title="Top 5 Destination Chains by Volume", text="volume")
-st.plotly_chart(fig, use_container_width=True)
-
-
-# === Paths Tables ===
-col1, col2 = st.columns(2)
-with col1:
-st.subheader("Paths by Transactions")
+st.markdown("**By total number of transactions**")
 st.dataframe(df_paths.sort_values("num_txs", ascending=False).reset_index(drop=True))
 with col2:
-st.subheader("Paths by Volume")
+st.markdown("**By total volume (USD)**")
 st.dataframe(df_paths.sort_values("volume", ascending=False).reset_index(drop=True))
 
 
-# === Paths Charts ===
+# ------------------ Row 6: Top-5 Paths charts ------------------
 col1, col2 = st.columns(2)
 with col1:
-top5 = df_paths.sort_values("num_txs", ascending=False).head(5)
-fig = px.bar(top5, x="path", y="num_txs", title="Top 5 Paths by Transactions", text="num_txs")
+st.markdown("**Top 5 paths — by transactions**")
+top = df_paths.sort_values("num_txs", ascending=False).head(5)
+if not top.empty:
+fig = px.bar(top, x="path", y="num_txs", text="num_txs", title="Top 5 Paths by Transactions")
 st.plotly_chart(fig, use_container_width=True)
+else:
+st.info("No data for Top 5 by transactions")
 with col2:
-top5 = df_paths.sort_values("volume", ascending=False).head(5)
-fig = px.bar(top5, x="path", y="volume", title="Top 5 Paths by Volume", text="volume")
+st.markdown("**Top 5 paths — by volume**")
+top = df_paths.sort_values("volume", ascending=False).head(5)
+if not top.empty:
+fig = px.bar(top, x="path", y="volume", text="volume", title="Top 5 Paths by Volume")
 st.plotly_chart(fig, use_container_width=True)
+else:
+st.info("No data for Top 5 by volume")
