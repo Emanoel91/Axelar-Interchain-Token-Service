@@ -428,54 +428,84 @@ with col6:
         barmode="group", legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
     st.plotly_chart(fig6, use_container_width=True)
 
-# ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-# ------------------ Helper functions ------------------
-# ------------------ Row 4: Top-5 Destination Charts ------------------
+
+
+
+
+
+
+# Convert to epoch (seconds)
+st.dataframe(source_agg.sort_values("volume", ascending=False))
+
+
+# --- Row 2: Top 5 Source charts ---
+st.subheader("Top 5 Source Chains")
 col1, col2 = st.columns(2)
 with col1:
-st.markdown("**Top 5 destination chains — by transactions**")
-top = df_dest.sort_values("num_txs", ascending=False).head(5)
-if not top.empty:
-fig = px.bar(top, x="destination_chain", y="num_txs", text="num_txs", title="Top 5 Destination Chains by Transactions")
-st.plotly_chart(fig, use_container_width=True)
-else:
-st.info("No data for Top 5 by transactions")
+top5 = source_agg.sort_values("num_txs", ascending=False).head(5)
+fig, ax = plt.subplots()
+ax.bar(top5["source_chain"], top5["num_txs"])
+ax.set_title("Top 5 by Transactions")
+st.pyplot(fig)
 with col2:
-st.markdown("**Top 5 destination chains — by volume**")
-top = df_dest.sort_values("volume", ascending=False).head(5)
-if not top.empty:
-fig = px.bar(top, x="destination_chain", y="volume", text="volume", title="Top 5 Destination Chains by Volume")
-st.plotly_chart(fig, use_container_width=True)
-else:
-st.info("No data for Top 5 by volume")
+top5 = source_agg.sort_values("volume", ascending=False).head(5)
+fig, ax = plt.subplots()
+ax.bar(top5["source_chain"], top5["volume"])
+ax.set_title("Top 5 by Volume")
+st.pyplot(fig)
 
 
-# ------------------ Row 5: Paths tables ------------------
-st.subheader("Paths (source ➡ destination) — ranked")
+# --- Row 3: Destination tables ---
+st.subheader("Destination Chains - Aggregated")
 col1, col2 = st.columns(2)
 with col1:
-st.markdown("**By total number of transactions**")
-st.dataframe(df_paths.sort_values("num_txs", ascending=False).reset_index(drop=True))
+st.write("Sorted by Transactions")
+st.dataframe(destination_agg.sort_values("num_txs", ascending=False))
 with col2:
-st.markdown("**By total volume (USD)**")
-st.dataframe(df_paths.sort_values("volume", ascending=False).reset_index(drop=True))
+st.write("Sorted by Volume")
+st.dataframe(destination_agg.sort_values("volume", ascending=False))
 
 
-# ------------------ Row 6: Top-5 Paths charts ------------------
+# --- Row 4: Top 5 Destination charts ---
+st.subheader("Top 5 Destination Chains")
 col1, col2 = st.columns(2)
 with col1:
-st.markdown("**Top 5 paths — by transactions**")
-top = df_paths.sort_values("num_txs", ascending=False).head(5)
-if not top.empty:
-fig = px.bar(top, x="path", y="num_txs", text="num_txs", title="Top 5 Paths by Transactions")
-st.plotly_chart(fig, use_container_width=True)
-else:
-st.info("No data for Top 5 by transactions")
+top5 = destination_agg.sort_values("num_txs", ascending=False).head(5)
+fig, ax = plt.subplots()
+ax.bar(top5["destination_chain"], top5["num_txs"])
+ax.set_title("Top 5 by Transactions")
+st.pyplot(fig)
 with col2:
-st.markdown("**Top 5 paths — by volume**")
-top = df_paths.sort_values("volume", ascending=False).head(5)
-if not top.empty:
-fig = px.bar(top, x="path", y="volume", text="volume", title="Top 5 Paths by Volume")
-st.plotly_chart(fig, use_container_width=True)
-else:
-st.info("No data for Top 5 by volume")
+top5 = destination_agg.sort_values("volume", ascending=False).head(5)
+fig, ax = plt.subplots()
+ax.bar(top5["destination_chain"], top5["volume"])
+ax.set_title("Top 5 by Volume")
+st.pyplot(fig)
+
+
+# --- Row 5: Path tables ---
+st.subheader("Source → Destination Paths - Aggregated")
+col1, col2 = st.columns(2)
+with col1:
+st.write("Sorted by Transactions")
+st.dataframe(path_agg.sort_values("num_txs", ascending=False))
+with col2:
+st.write("Sorted by Volume")
+st.dataframe(path_agg.sort_values("volume", ascending=False))
+
+
+# --- Row 6: Top 5 Path charts ---
+st.subheader("Top 5 Paths (Source → Destination)")
+col1, col2 = st.columns(2)
+with col1:
+top5 = path_agg.sort_values("num_txs", ascending=False).head(5)
+fig, ax = plt.subplots()
+ax.bar([f"{r['source_chain']}→{r['destination_chain']}" for _, r in top5.iterrows()], top5["num_txs"])
+ax.set_title("Top 5 by Transactions")
+st.pyplot(fig)
+with col2:
+top5 = path_agg.sort_values("volume", ascending=False).head(5)
+fig, ax = plt.subplots()
+ax.bar([f"{r['source_chain']}→{r['destination_chain']}" for _, r in top5.iterrows()], top5["volume"])
+ax.set_title("Top 5 by Volume")
+st.pyplot(fig)
