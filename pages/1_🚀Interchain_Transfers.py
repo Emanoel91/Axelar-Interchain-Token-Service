@@ -969,27 +969,23 @@ with col3:
     df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
     st.dataframe(df_display, use_container_width=True)
 
-# ابتدا ستون‌های مورد نیاز را از df_paths انتخاب می‌کنیم
+# تغییر نام ستون در جدول سوم
+df_paths_stats = df_paths_stats.rename(columns={'Source Chain': 'source_chain'})
+
+# انتخاب ستون‌های مورد نیاز از جدول اول/دوم
 df_paths_subset = df_paths[['source_chain', 'num_txs', 'volume']]
 
-# سپس df_paths_stats را آماده می‌کنیم
-df_stats = df_paths_stats.copy()
-df_stats.index = df_stats.index + 1  # اگر لازم است
-df_stats = df_stats.reset_index(drop=True)
+# merge بر اساس source_chain
+df_merged = pd.merge(df_paths_subset, df_paths_stats, on='source_chain', how='left')
 
-# حالا دو DataFrame را بر اساس 'source_chain' ترکیب می‌کنیم
-df_merged = pd.merge(df_paths_subset, df_stats, left_on='source_chain', right_on='Source Chain')
-
-# ستون‌ها را مرتب می‌کنیم و نام‌گذاری می‌کنیم
+# تغییر نام ستون‌ها برای نمایش نهایی
 df_merged = df_merged.rename(columns={
+    'source_chain': 'Source Chain',
     'num_txs': 'Number of Transfers',
-    'volume': 'Volume of Transfers',
-    'Number of Users': 'Number of Users',
-    'Total Gas Fee': 'Total Gas Fee',
-    'source_chain': 'Source Chain'
+    'volume': 'Volume of Transfers'
 })
 
-# نمایش در Streamlit
+# نمایش در Streamlit با قالب‌بندی عددی
 import streamlit as st
 st.dataframe(df_merged.style.format({
     'Number of Transfers': "{:,}",
