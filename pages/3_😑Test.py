@@ -6,7 +6,6 @@ import plotly.graph_objects as go
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import requests
-import matplotlib.pyplot as plt
 
 # --- Page Config ------------------------------------------------------------------------------------------------------
 st.set_page_config(
@@ -232,51 +231,41 @@ with col5:
 with col6:
     st.markdown(card_style.format(label="Total Transfer Fees", value=f"${df_interchain_stats['Total Transfer Fees'][0]:,}"), unsafe_allow_html=True)
 
-# --- Top 5 Charts ---------------------------------------------------------------------------------------------------
+# --- Top 5 Charts with Plotly ---------------------------------------------------------------------------------------
 st.subheader("Top 5 Source Chains")
 col1, col2 = st.columns(2)
 with col1:
     top5 = source_agg.sort_values("num_txs", ascending=False).head(5)
-    fig, ax = plt.subplots()
-    ax.bar(top5["source_chain"], top5["num_txs"])
-    ax.set_title("Top 5 by Transactions")
-    st.pyplot(fig)
+    fig = px.bar(top5, x="source_chain", y="num_txs", title="Top 5 by Transactions", color="source_chain")
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
     top5 = source_agg.sort_values("volume", ascending=False).head(5)
-    fig, ax = plt.subplots()
-    ax.bar(top5["source_chain"], top5["volume"])
-    ax.set_title("Top 5 by Volume")
-    st.pyplot(fig)
+    fig = px.bar(top5, x="source_chain", y="volume", title="Top 5 by Volume", color="source_chain")
+    st.plotly_chart(fig, use_container_width=True)
 
 st.subheader("Top 5 Destination Chains")
 col1, col2 = st.columns(2)
 with col1:
     top5 = destination_agg.sort_values("num_txs", ascending=False).head(5)
-    fig, ax = plt.subplots()
-    ax.bar(top5["destination_chain"], top5["num_txs"])
-    ax.set_title("Top 5 by Transactions")
-    st.pyplot(fig)
+    fig = px.bar(top5, x="destination_chain", y="num_txs", title="Top 5 by Transactions", color="destination_chain")
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
     top5 = destination_agg.sort_values("volume", ascending=False).head(5)
-    fig, ax = plt.subplots()
-    ax.bar(top5["destination_chain"], top5["volume"])
-    ax.set_title("Top 5 by Volume")
-    st.pyplot(fig)
+    fig = px.bar(top5, x="destination_chain", y="volume", title="Top 5 by Volume", color="destination_chain")
+    st.plotly_chart(fig, use_container_width=True)
 
 st.subheader("Top 5 Paths (Source → Destination)")
 col1, col2 = st.columns(2)
 with col1:
     top5 = path_agg.sort_values("num_txs", ascending=False).head(5)
-    fig, ax = plt.subplots()
-    ax.bar([f"{r['source_chain']}→{r['destination_chain']}" for _, r in top5.iterrows()], top5["num_txs"])
-    ax.set_title("Top 5 by Transactions")
-    st.pyplot(fig)
+    top5["path"] = top5["source_chain"] + "→" + top5["destination_chain"]
+    fig = px.bar(top5, x="path", y="num_txs", title="Top 5 by Transactions", color="path")
+    st.plotly_chart(fig, use_container_width=True)
 
 with col2:
     top5 = path_agg.sort_values("volume", ascending=False).head(5)
-    fig, ax = plt.subplots()
-    ax.bar([f"{r['source_chain']}→{r['destination_chain']}" for _, r in top5.iterrows()], top5["volume"])
-    ax.set_title("Top 5 by Volume")
-    st.pyplot(fig)
+    top5["path"] = top5["source_chain"] + "→" + top5["destination_chain"]
+    fig = px.bar(top5, x="path", y="volume", title="Top 5 by Volume", color="path")
+    st.plotly_chart(fig, use_container_width=True)
