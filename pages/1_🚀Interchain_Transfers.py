@@ -969,40 +969,43 @@ with col3:
     df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
     st.dataframe(df_display, use_container_width=True)
 
-# --- مرحله 1: آماده‌سازی مسیرها ---
+# --- مرحله 1: آماده‌سازی ستون path ---
 df_paths['path'] = df_paths['path'].astype(str).str.strip().str.lower()
-df_paths = df_paths.reset_index(drop=True)
-
 df_paths_stats = df_paths_stats.copy()
 df_paths_stats['path'] = df_paths_stats['Path'].astype(str).str.strip().str.lower()
-df_paths_stats = df_paths_stats.drop(columns=['Path'], errors='ignore')  # اگر ستون وجود نداشت نادیده گرفته شود
+df_paths_stats = df_paths_stats.drop(columns=['Path'], errors='ignore')
+
+# --- مرحله 2: reset index ها برای اطمینان از merge صحیح ---
+df_paths = df_paths.reset_index(drop=True)
 df_paths_stats = df_paths_stats.reset_index(drop=True)
 
-# --- مرحله 2: انتخاب ستون‌های مورد نیاز ---
+# --- مرحله 3: انتخاب ستون‌های مورد نیاز از df_paths ---
 df_paths_subset = df_paths[['path', 'num_txs', 'volume']]
 
-# --- مرحله 3: merge ایمن بر اساس path ---
+# --- مرحله 4: merge ایمن بر اساس path ---
 df_merged = pd.merge(df_paths_subset, df_paths_stats, on='path', how='left')
 
-# --- مرحله 4: نام‌گذاری ستون‌ها ---
+# --- مرحله 5: نام‌گذاری ستون‌ها ---
 df_merged = df_merged.rename(columns={
     'path': 'Path',
     'num_txs': 'Number of Transfers',
     'volume': 'Volume of Transfers'
 })
 
-# --- مرحله 5: تبدیل ستون‌های عددی به numeric ---
+# --- مرحله 6: تبدیل ستون‌های عددی به numeric ---
 for col in ['Number of Transfers', 'Volume of Transfers', 'Number of Users', 'Total Gas Fee']:
     if col in df_merged.columns:
         df_merged[col] = pd.to_numeric(df_merged[col], errors='coerce')
 
-# --- مرحله 6: نمایش جدول در Streamlit ---
-st.dataframe(df_merged.style.format({
-    'Number of Transfers': "{:,}",
-    'Volume of Transfers': "{:,}",
-    'Number of Users': "{:,}",
-    'Total Gas Fee': "{:,}"
-}), use_container_width=True)
+# --- مرحله 7: قالب‌بندی عددی بدون applymap ---
+df_display = df_merged.apply(lambda col: col.map(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x))
+
+# --- مرحله 8: نمایش جدول در Streamlit با width به جای use_container_width ---
+st.dataframe(df_display, width='stretch')
+
+# --- اختیاری: مرتب‌سازی بر اساس Number of Transfers ---
+df_display_sorted = df_display.sort_values('Number of Transfers', ascending=False)
+st.dataframe(df_display_sorted, width='stretch')
 # === Paths Charts ===
 col1, col2, col3 = st.columns(3)
 with col1:
