@@ -192,8 +192,8 @@ agg_df["cum_volume"] = agg_df["volume"].cumsum()
 
 # --- KPIs -----------------------------------------------------------------------------------------------------------
 col1, col2, col3 = st.columns(3)
-col1.metric("Total Number of Transfers", agg_df["num_txs"].sum())
-col2.metric("Total Volume of Transfers", agg_df["volume"].sum())
+col1.metric(label="Total Number of Transfers", value=f"{agg_df['num_txs'].sum():,} Txns")
+col2.metric(label="Total Volume of Transfers", value=f"${round(agg_df['volume'].sum()):,}")
 col3.metric(label="Unique Users", value=f"{df_interchain_stats["Unique Users"][0]:,} wallets")
 
 col4, col5, col6 = st.columns(3)
