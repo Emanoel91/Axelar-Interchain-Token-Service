@@ -969,17 +969,13 @@ with col3:
     df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
     st.dataframe(df_display, use_container_width=True)
 
-import pandas as pd
-import streamlit as st
-
-# --- مرحله 1: اطمینان از اینکه ستون مشترک path در هر دو جدول درست است ---
-# در df_paths جدول اول و دوم، ستون path وجود دارد
+# --- مرحله 1: آماده‌سازی مسیرها ---
 df_paths['path'] = df_paths['path'].astype(str).str.strip().str.lower()
+df_paths = df_paths.reset_index(drop=True)
 
-# در df_paths_stats ستون Path را داریم، تبدیل به path و reset index
 df_paths_stats = df_paths_stats.copy()
 df_paths_stats['path'] = df_paths_stats['Path'].astype(str).str.strip().str.lower()
-df_paths_stats = df_paths_stats.drop(columns=['Path'])
+df_paths_stats = df_paths_stats.drop(columns=['Path'], errors='ignore')  # اگر ستون وجود نداشت نادیده گرفته شود
 df_paths_stats = df_paths_stats.reset_index(drop=True)
 
 # --- مرحله 2: انتخاب ستون‌های مورد نیاز ---
@@ -995,28 +991,18 @@ df_merged = df_merged.rename(columns={
     'volume': 'Volume of Transfers'
 })
 
-# --- مرحله 5: اطمینان از اینکه ستون‌های عددی درست هستند ---
+# --- مرحله 5: تبدیل ستون‌های عددی به numeric ---
 for col in ['Number of Transfers', 'Volume of Transfers', 'Number of Users', 'Total Gas Fee']:
     if col in df_merged.columns:
         df_merged[col] = pd.to_numeric(df_merged[col], errors='coerce')
 
-# --- مرحله 6: نمایش جدول در Streamlit با قالب‌بندی عددی ---
+# --- مرحله 6: نمایش جدول در Streamlit ---
 st.dataframe(df_merged.style.format({
     'Number of Transfers': "{:,}",
     'Volume of Transfers': "{:,}",
     'Number of Users': "{:,}",
     'Total Gas Fee': "{:,}"
 }), use_container_width=True)
-
-# --- اختیاری: مرتب‌سازی جدول بر اساس Number of Transfers ---
-df_merged_sorted = df_merged.sort_values('Number of Transfers', ascending=False)
-st.dataframe(df_merged_sorted.style.format({
-    'Number of Transfers': "{:,}",
-    'Volume of Transfers': "{:,}",
-    'Number of Users': "{:,}",
-    'Total Gas Fee': "{:,}"
-}), use_container_width=True)
-
 # === Paths Charts ===
 col1, col2, col3 = st.columns(3)
 with col1:
