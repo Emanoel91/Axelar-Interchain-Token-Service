@@ -275,7 +275,7 @@ def load_interchain_users_data(timeframe, start_date, end_date):
         ) 
     group by 1)
     select table1."Date" as "Date", "New Users", "Total Users", "Total Users"-"New Users" as "Returning Users", "User Growth",
-    round((("New Users"/"Total Users")*100),2) as "%Growth Rate"
+    round((("New Users"/"Total Users")*100),1) as "%Growth Rate"
     from table1 left join table2 on table1."Date"=table2."Date"
     order by 1
     """
