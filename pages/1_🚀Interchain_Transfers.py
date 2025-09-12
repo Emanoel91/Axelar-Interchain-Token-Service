@@ -969,28 +969,38 @@ with col3:
     df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
     st.dataframe(df_display, use_container_width=True)
 
-# تغییر نام ستون جدول سوم برای تطابق با جدول اول و دوم
-df_paths_stats = df_paths_stats.rename(columns={'Path': 'path'})
+df_paths['path'] = df_paths['path'].str.strip().str.lower()
+df_paths_stats['path'] = df_paths_stats['Path'].str.strip().str.lower()  # تغییر نام Path به path
+df_paths_stats = df_paths_stats.drop(columns=['Path'])
 
-# انتخاب ستون‌های مورد نیاز از جدول اول/دوم
+# --- مرحله 2: انتخاب ستون‌های مورد نیاز ---
 df_paths_subset = df_paths[['path', 'num_txs', 'volume']]
 
-# merge بر اساس path
+# --- مرحله 3: merge دو جدول بر اساس path ---
 df_merged = pd.merge(df_paths_subset, df_paths_stats, on='path', how='left')
 
-# تغییر نام ستون‌ها برای نمایش نهایی
+# --- مرحله 4: نام‌گذاری مجدد ستون‌ها برای نمایش ---
 df_merged = df_merged.rename(columns={
     'path': 'Path',
     'num_txs': 'Number of Transfers',
     'volume': 'Volume of Transfers'
 })
 
-# نمایش در Streamlit با قالب‌بندی عددی
+# --- مرحله 5: نمایش جدول در Streamlit با قالب‌بندی عددی ---
 st.dataframe(df_merged.style.format({
     'Number of Transfers': "{:,}",
     'Volume of Transfers': "{:,}",
-    "Number of Users": "{:,}",
-    "Total Gas Fee": "{:,}"
+    'Number of Users': "{:,}",
+    'Total Gas Fee': "{:,}"
+}), use_container_width=True)
+
+# --- اختیاری: مرتب‌سازی جدول بر اساس Number of Transfers ---
+df_merged_sorted = df_merged.sort_values('Number of Transfers', ascending=False)
+st.dataframe(df_merged_sorted.style.format({
+    'Number of Transfers': "{:,}",
+    'Volume of Transfers': "{:,}",
+    'Number of Users': "{:,}",
+    'Total Gas Fee': "{:,}"
 }), use_container_width=True)
 
 # === Paths Charts ===
