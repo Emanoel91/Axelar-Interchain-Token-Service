@@ -339,6 +339,6 @@ with col1:
     st.plotly_chart(fig_b1, use_container_width=True)
 
 with col2:
-    fig2 = px.area(df_interchain_users_data, x="Date", y="User Growth", title="Interchain Users Growth Over Time")
-    fig2.update_layout(xaxis_title="", yaxis_title="%", overlaying="y", side="right")
+    fig2 = px.area(df_ts, x="Date", y="User Growth", title="Interchain User Growth Over Time")
+    fig2.update_layout(xaxis_title=" ", yaxis_title="%", template="plotly_white")
     st.plotly_chart(fig2, use_container_width=True)
