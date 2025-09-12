@@ -245,3 +245,101 @@ fig2.add_trace(go.Scatter(x=agg_df["period"], y=agg_df["cum_volume"],name="Total
 fig2.update_layout(title="Volume of Interchain Transfers Over Time", yaxis=dict(title="$USD"), yaxis2=dict(title="$USD", overlaying="y", side="right"), xaxis_title="",
     legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
 col2.plotly_chart(fig2, use_container_width=True)
+
+
+@st.cache_data
+def load_interchain_users_data(timeframe, start_date, end_date):
+    
+    start_str = start_date.strftime("%Y-%m-%d")
+    end_str = end_date.strftime("%Y-%m-%d")
+
+    query = f"""
+    with table1 as (
+    WITH tab1 AS (
+    SELECT data:call.transaction.from::STRING AS user, min(created_at::date) as first_txn_date
+    FROM axelar.axelscan.fact_gmp 
+    WHERE status = 'executed' AND simplified_status = 'received' AND (
+        data:approved:returnValues:contractAddress ilike '%0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C%' -- Interchain Token Service
+        or data:approved:returnValues:contractAddress ilike '%axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr%' -- Axelar ITS Hub
+        )
+    group by 1)
+    select date_trunc('{timeframe}',first_txn_date) as "Date", count(distinct user) as "New Users", sum("New Users") over (order by "Date") as "User Growth"
+    from tab1 
+    where first_txn_date>='{start_str}' and first_txn_date<='{end_str}'
+    group by 1),
+    table2 as (SELECT date_trunc('{timeframe}',created_at) as "Date", count(distinct data:call.transaction.from::STRING) AS "Total Users"
+    FROM axelar.axelscan.fact_gmp 
+    WHERE created_at::date>='{start_str}' and created_at::date<='{end_str}' and status = 'executed' AND simplified_status = 'received' AND (
+    data:approved:returnValues:contractAddress ilike '%0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C%' -- Interchain Token Service
+    or data:approved:returnValues:contractAddress ilike '%axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr%' -- Axelar ITS Hub
+        ) 
+    group by 1)
+    select table1."Date" as "Date", "New Users", "Total Users", "Total Users"-"New Users" as "Returning Users", "User Growth",
+    round((("New Users"/"Total Users")*100),2) as "%Growth Rate"
+    from table1 left join table2 on table1."Date"=table2."Date"
+    order by 1
+    """
+
+    df = pd.read_sql(query, conn)
+    return df
+
+@st.cache_data
+def load_interchain_fees_data(timeframe, start_date, end_date):
+    
+    start_str = start_date.strftime("%Y-%m-%d")
+    end_str = end_date.strftime("%Y-%m-%d")
+
+    query = f"""
+    WITH axelar_service AS (  
+    SELECT  
+    created_at, COALESCE(CASE 
+        WHEN IS_ARRAY(data:gas:gas_used_amount) OR IS_OBJECT(data:gas:gas_used_amount) 
+          OR IS_ARRAY(data:gas_price_rate:source_token.token_price.usd) OR IS_OBJECT(data:gas_price_rate:source_token.token_price.usd) 
+        THEN NULL
+        WHEN TRY_TO_DOUBLE(data:gas:gas_used_amount::STRING) IS NOT NULL 
+          AND TRY_TO_DOUBLE(data:gas_price_rate:source_token.token_price.usd::STRING) IS NOT NULL 
+        THEN TRY_TO_DOUBLE(data:gas:gas_used_amount::STRING) * TRY_TO_DOUBLE(data:gas_price_rate:source_token.token_price.usd::STRING)
+        ELSE NULL
+      END, CASE 
+        WHEN IS_ARRAY(data:fees:express_fee_usd) OR IS_OBJECT(data:fees:express_fee_usd) THEN NULL
+        WHEN TRY_TO_DOUBLE(data:fees:express_fee_usd::STRING) IS NOT NULL THEN TRY_TO_DOUBLE(data:fees:express_fee_usd::STRING)
+        ELSE NULL
+      END) AS fee,
+    FROM axelar.axelscan.fact_gmp 
+    WHERE status = 'executed'
+    AND simplified_status = 'received'
+    AND (
+        data:approved:returnValues:contractAddress ilike '%0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C%' -- Interchain Token Service
+        or data:approved:returnValues:contractAddress ilike '%axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr%' -- Axelar ITS Hub
+        ))
+    SELECT date_trunc('month',created_at) as "Date", round(sum(fee)) as "Transfer Fees", sum("Transfer Fees") over (order by "Date") as "Total Transfer Fees",
+    round(avg(fee),3) as "Average Gas Fee", round(median(fee),3) as "Median Gas Fee"
+    FROM axelar_service
+    group by 1
+    order by 1
+    """
+
+    df = pd.read_sql(query, conn)
+    return df
+
+# --- Load Data --------------------------------------------------------------------------------------------------------------------
+df_interchain_users_data = load_interchain_users_data(timeframe, start_date, end_date)
+df_interchain_fees_data = load_interchain_fees_data(timeframe, start_date, end_date)
+# ----------------------------------------------------------------------------------------------------------------------------------
+col1, col2 = st.columns(2)
+
+with col1:
+    fig_b1 = go.Figure()
+    # Stacked Bars
+    fig_b1.add_trace(go.Bar(x=df_interchain_users_data["Date"], y=df_interchain_users_data["New Users"], name="New Users", marker_color="#0ed145"))
+    fig_b1.add_trace(go.Bar(x=df_interchain_users_data["Date"], y=df_interchain_users_data["Returning Users"], name="Returning Users", marker_color="ff7f27"))
+    fig_b1.add_trace(go.Scatter(x=df_interchain_users_data["Date"], y=df_interchain_users_data["Total Users"], name="Total Users", mode="lines", line=dict(color="black", width=2)))
+    fig_b1.update_layout(barmode="stack", title="Number of Users Over Time", yaxis=dict(title="Wallet count"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5))
+    st.plotly_chart(fig_b1, use_container_width=True)
+
+with col2:
+    fig2 = px.area(df_interchain_users_data, x="Date", y="User Growth", title="Interchain Users Growth Over Time")
+    fig2.add_trace(go.Scatter(x=df_interchain_users_data["Date"], y=df_interchain_users_data["User Growth"], name="%User Growth", mode="lines", yaxis="y2", line=dict(color="black")))
+    fig2.update_layout(xaxis_title="", yaxis_title="$USD", template="plotly_white")
+    st.plotly_chart(fig2, use_container_width=True)
