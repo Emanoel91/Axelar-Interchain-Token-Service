@@ -814,7 +814,7 @@ col1, col2, col3 = st.columns(3)
 
 # Destination Chains by Transactions
 with col1:
-    st.subheader("🔗Destinations by Transactions")
+    st.subheader("🔗Destinations by Txns")
     df_display1 = df_destinations[["destination_chain", "num_txs"]].copy()
     df_display1 = df_display1.sort_values("num_txs", ascending=False).reset_index(drop=True)
     df_display1.index = df_display1.index + 1  
