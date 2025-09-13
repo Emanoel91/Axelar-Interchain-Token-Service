@@ -816,7 +816,7 @@ col1, col2, col3 = st.columns(3)
 
 # Destination Chains by Transactions
 with col1:
-    st.markdown("<h5 style='font-size:18px; font-weight:bold;'>🔗 Destination Chains by Transactions</h5>", unsafe_allow_html=True)
+    st.markdown("<h5 style='font-size:16px; font-weight:bold;'>🔗 Destination Chains by Transactions</h5>", unsafe_allow_html=True)
     df_display1 = df_destinations[["destination_chain", "num_txs"]].copy()
     df_display1 = df_display1.sort_values("num_txs", ascending=False).reset_index(drop=True)
     df_display1.index = df_display1.index + 1  
