@@ -361,7 +361,7 @@ with col1:
     # Stacked Bars
     fig_stacked_fee_chain = px.bar(df_deploy_fee_stats_overtime, x="Date", y="Total Gas Fees", color="Deployed Chain", 
                                 title="Amount of Fees Paid Based on the Deployed Chain Over Time")
-    fig_stacked_fee_chain.update_layout(barmode="stack", yaxis_title="$USD", xaxis_title="", legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5, title=""))
+    fig_stacked_fee_chain.update_layout(barmode="stack", yaxis_title="$USD", xaxis_title="")
     st.plotly_chart(fig_stacked_fee_chain, use_container_width=True)
 
 with col2:
