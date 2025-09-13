@@ -59,36 +59,6 @@ st.sidebar.markdown(
     unsafe_allow_html=True
 )
 
-# --- Snowflake Connection ----------------------------------------------------------------------------------------
-snowflake_secrets = st.secrets["snowflake"]
-user = snowflake_secrets["user"]
-account = snowflake_secrets["account"]
-private_key_str = snowflake_secrets["private_key"]
-warehouse = snowflake_secrets.get("warehouse", "")
-database = snowflake_secrets.get("database", "")
-schema = snowflake_secrets.get("schema", "")
-
-private_key_pem = f"-----BEGIN PRIVATE KEY-----\n{private_key_str}\n-----END PRIVATE KEY-----".encode("utf-8")
-private_key = serialization.load_pem_private_key(
-    private_key_pem,
-    password=None,
-    backend=default_backend()
-)
-private_key_bytes = private_key.private_bytes(
-    encoding=serialization.Encoding.DER,
-    format=serialization.PrivateFormat.PKCS8,
-    encryption_algorithm=serialization.NoEncryption()
-)
-
-conn = snowflake.connector.connect(
-    user=user,
-    account=account,
-    private_key=private_key_bytes,
-    warehouse=warehouse,
-    database=database,
-    schema=schema
-)
-
 # --- Convert date to unix (sec) ----------------------------------------------------------------------------------
 def to_unix_timestamp(dt):
     return int(time.mktime(dt.timetuple()))
