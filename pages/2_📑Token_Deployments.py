@@ -170,9 +170,9 @@ with col1:
 with col2:
     st.markdown(card_style.format(label="Number of Token Deployers", value=f"👨‍💻{df_deploy_stats["Total Number of Token Deployers"][0]:,}"), unsafe_allow_html=True)
 with col3:
-    st.markdown(card_style.format(label="Total Gas Fees", value=f"⛽{df_deploy_stats["Total Gas Fees"][0]:,}"), unsafe_allow_html=True)
+    st.markdown(card_style.format(label="Total Gas Fees", value=f"⛽${df_deploy_stats["Total Gas Fees"][0]:,}"), unsafe_allow_html=True)
 
-# --- Row 2: Number of Deployer -----------------------------------------------------------------------------------------------------------------------------------------------
+# --- Row 2: Number of Deployer --------------------------------------------------------------------------------------------------------------------------------------------
 @st.cache_data
 def load_deployers_overtime(timeframe, start_date, end_date):
     
@@ -224,7 +224,7 @@ def load_deployed_tokens(timeframe, start_date, end_date):
     SELECT date_trunc('{timeframe}',created_at) as "Date", count(distinct data:interchain_token_deployment_started:tokenId) as "Number of Tokens", case 
 when (call:receipt:logs[0]:address ilike '%0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C%' or 
 call:receipt:logs[0]:address ilike '%axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr%') then 'Existing Tokens'
-else 'Newly Minted Token' end as token_type
+else 'Newly Minted Token' end as "Token Type"
 FROM axelar.axelscan.fact_gmp 
 WHERE status = 'executed' AND simplified_status = 'received' AND (
 data:approved:returnValues:contractAddress ilike '%0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C%' -- Interchain Token Service
@@ -238,6 +238,32 @@ order by 1
 
     df = pd.read_sql(query, conn)
     return df
+
+# === Load Data: Row 2 ====================================================================
+df_deployers_overtime = load_deployers_overtime(timeframe, start_date, end_date)
+df_deployed_tokens = load_deployed_tokens(timeframe, start_date, end_date)
+# === Chart: Row 2 ========================================================================
+color_map = {
+    "Existing Tokens": "#858dff",
+    "Newly Minted Token": "#fc9047"
+}
+
+col1, col2 = st.columns(2)
+
+with col1:
+    fig_b1 = go.Figure()
+    # Stacked Bars
+    fig_b1.add_trace(go.Bar(x=df_deployers_overtime["Date"], y=df_deployers_overtime["New Deployers"], name="New Deployers", marker_color="#fc9047"))
+    fig_b1.add_trace(go.Bar(x=df_deployers_overtime["Date"], y=df_deployers_overtime["Returning Deployers"], name="Returning Deployers", marker_color="#858dff"))
+    fig_b1.add_trace(go.Scatter(x=df_deployers_overtime["Date"], y=df_deployers_overtime["Total Deployers"], name="Total Deployers", mode="lines", line=dict(color="black", width=2)))
+    fig_b1.update_layout(barmode="stack", title="Number of Token Deployers Over Time", yaxis=dict(title="Address count"),
+        legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5))
+    st.plotly_chart(fig_b1, use_container_width=True)
+
+with col2:
+    fig_stacked_tokens = px.bar(df_deployed_tokens, x="Date", y="Number of Tokens", color="Token Type", title="Number of Tokens Deployed Over Time", color_discrete_map=color_map)
+    fig_stacked_tokens.update_layout(barmode="stack", yaxis_title="Number of Tokens", xaxis_title="", legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5, title=""))
+    st.plotly_chart(fig_stacked_tokens, use_container_width=True)
 
 # --- Row 3,4 -------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @st.cache_data
@@ -494,9 +520,8 @@ order by 1 desc
     return df
 
 # --- Load Data --------------------------------------------------------------------------------------------------------------------
-df_deploy_stats = load_deploy_stats(start_date, end_date)
-df_deployers_overtime = load_deployers_overtime(timeframe, start_date, end_date)
-df_deployed_tokens = load_deployed_tokens(timeframe, start_date, end_date)
+
+
 df_deploy_fee_stats_overtime = load_deploy_fee_stats_overtime(timeframe, start_date, end_date)
 df_avg_median_fee_stats = load_avg_median_fee_stats(timeframe, start_date, end_date)
 df_deploy_stats_by_chain = load_deploy_stats_by_chain(start_date, end_date)
