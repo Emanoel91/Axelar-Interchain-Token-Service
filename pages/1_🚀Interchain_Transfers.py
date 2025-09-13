@@ -222,7 +222,7 @@ with col4:
     st.markdown(card_style.format(label="Unique Paths", value=f"{df_interchain_stats['Paths'][0]:,}"), unsafe_allow_html=True)
 
 with col5:
-    st.markdown(card_style.format(label="Number of Tokens (with Volume>0$)", value=f"{df_interchain_stats['Tokens'][0]:,}"), unsafe_allow_html=True)
+    st.markdown(card_style.format(label="#Tokens (with Volume>0$)", value=f"{df_interchain_stats['Tokens'][0]:,}"), unsafe_allow_html=True)
 
 with col6:
     st.markdown(card_style.format(label="Total Transfer Fees", value=f"${df_interchain_stats['Total Transfer Fees'][0]:,}"), unsafe_allow_html=True)
