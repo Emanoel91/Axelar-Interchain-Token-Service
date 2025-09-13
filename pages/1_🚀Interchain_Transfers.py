@@ -956,20 +956,6 @@ df_top_paths_stats = load_top_paths_stats(start_date, end_date)
 
 # === Paths Tables ======================================================================
 col1, col2, col3 = st.columns(3)
-with col1:
-    st.subheader("Paths by Transactions")
-    st.dataframe(df_paths.sort_values("num_txs", ascending=False).reset_index(drop=True))
-with col2:
-    st.subheader("Paths by Volume")
-    st.dataframe(df_paths.sort_values("volume", ascending=False).reset_index(drop=True))
-with col3:
-    st.subheader("Paths by Users")
-    df_display = df_paths_stats.copy()
-    df_display.index = df_display.index + 1
-    df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
-    st.dataframe(df_display, use_container_width=True)
-
-col1, col2, col3 = st.columns(3)
 
 # Paths by Transactions
 with col1:
