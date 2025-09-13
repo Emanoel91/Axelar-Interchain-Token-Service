@@ -828,11 +828,11 @@ with col3:
 col1, col2, col3 = st.columns(3)
 with col1:
     top5 = df_destinations.sort_values("num_txs", ascending=False).head(5)
-    fig = px.bar(top5, x="destination_chain", y="num_txs", title="Top 5 Destination Chains by Transactions", text="Transfers Count")
+    fig = px.bar(top5, x="destination_chain", y="num_txs", title="Top 5 Destination Chains by Transactions", text="num_txs")
     st.plotly_chart(fig, use_container_width=True)
 with col2:
     top5 = df_destinations.sort_values("volume", ascending=False).head(5)
-    fig = px.bar(top5, x="destination_chain", y="volume", title="Top 5 Destination Chains by Volume", text="Transfers Volume")
+    fig = px.bar(top5, x="destination_chain", y="volume", title="Top 5 Destination Chains by Volume", text="volume")
     st.plotly_chart(fig, use_container_width=True)
 with col3:
     fig = px.bar(df_destination_chains_stats, x="Destination Chain", y="Number of Users", title="Top 5 Destination Chains by Users", text="Number of Users")
