@@ -804,17 +804,40 @@ with col3:
 
 # === Destination Chains Charts ===
 col1, col2, col3 = st.columns(3)
+
+# Destination Chains by Transactions
 with col1:
-    top5 = df_destinations.sort_values("num_txs", ascending=False).head(5)
-    fig = px.bar(top5, x="destination_chain", y="num_txs", title="Top 5 Destination Chains by Transactions", text="num_txs")
-    st.plotly_chart(fig, use_container_width=True)
+    st.subheader("Destination Chains Sorted by Transactions")
+    df_display1 = df_destinations[["destination_chain", "num_txs"]].copy()
+    df_display1 = df_display1.sort_values("num_txs", ascending=False).reset_index(drop=True)
+    df_display1.index = df_display1.index + 1  
+    df_display1["num_txs"] = df_display1["num_txs"].apply(lambda x: f"{x:,}")  
+    df_display1 = df_display1.rename(columns={
+        "destination_chain": "Destination Chain",
+        "num_txs": "Number of Transfers"
+    })
+    st.dataframe(df_display1, use_container_width=True)
+
+# Destination Chains by Volume
 with col2:
-    top5 = df_destinations.sort_values("volume", ascending=False).head(5)
-    fig = px.bar(top5, x="destination_chain", y="volume", title="Top 5 Destination Chains by Volume", text="volume")
-    st.plotly_chart(fig, use_container_width=True)
+    st.subheader("Destination Chains Sorted by Volume")
+    df_display2 = df_destinations[["destination_chain", "volume"]].copy()
+    df_display2 = df_display2.sort_values("volume", ascending=False).reset_index(drop=True)
+    df_display2.index = df_display2.index + 1  
+    df_display2["volume"] = df_display2["volume"].apply(lambda x: f"{x:,.2f}") 
+    df_display2 = df_display2.rename(columns={
+        "destination_chain": "Destination Chain",
+        "volume": "Volume of Transfers ($USD)"
+    })
+    st.dataframe(df_display2, use_container_width=True)
+
+# Destination Chains by Users
 with col3:
-    fig = px.bar(df_top_destination_chains_stats, x="Destination Chain", y="Number of Users", title="Top 5 Destination Chains by Users", text="Number of Users")
-    st.plotly_chart(fig, use_container_width=True)
+    st.subheader("Destination Chains Sorted by Users")
+    df_display3 = df_paths_stats.copy()
+    df_display3.index = df_display3.index + 1
+    df_display3 = df_display3.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
+    st.dataframe(df_display3, use_container_width=True)
 
 # ------- Path: Snowflake ------------------------------------
 @st.cache_data
