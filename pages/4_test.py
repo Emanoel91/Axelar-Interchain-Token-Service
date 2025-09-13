@@ -75,23 +75,11 @@ else:
     df_display["Number of Transfers"] = df_display["Number of Transfers"].map("{:,}".format)
     df_display["Volume of Transfers"] = df_display["Volume of Transfers"].map("{:,.0f}".format)
 
-    # ساخت HTML برای نمایش لوگو
-    def logo_html(url):
-        if url:
-            return f'<img src="{url}" style="width:20px;height:20px;border-radius:50%;">'
-        return ""
-
-    df_display["Logo"] = df_display["Logo"].apply(logo_html)
-
+    # نمایش جدول با 20 ردیف و اسکرول
     st.subheader("📑 Interchain Token Transfers Table")
+    st.dataframe(df_display, use_container_width=True, height=700)  # حدودا 20 ردیف
 
-    # نمایش جدول با HTML (لوگو + داده‌ها)
-    st.write(
-        df_display.to_html(escape=False, index=False),
-        unsafe_allow_html=True
-    )
-
-    # --- نمودار ۱: Top 10 by Volume (بدون Unknown) -------------------------------------------------------------------
+    # --- تجمیع داده‌ها برای نمودارها (بدون Unknown) ------------------------------------------------------------------
     df_grouped = (
         df[df["Symbol"] != "Unknown"]
         .groupby("Symbol", as_index=False)
@@ -101,10 +89,16 @@ else:
         })
     )
 
+    # ستون جدید برای نمایش لوگو در محور X
+    df_grouped["Symbol+Logo"] = df_grouped["Symbol"].apply(
+        lambda s: f"<img src='{symbol_to_image.get(s, '')}' style='width:20px;height:20px;border-radius:50%;vertical-align:middle;margin-right:5px;'> {s}"
+    )
+
+    # --- نمودار ۱: Top 10 by Volume ----------------------------------------------------------------------------------
     top_volume = df_grouped.sort_values("Volume of Transfers", ascending=False).head(10)
     fig1 = px.bar(
         top_volume,
-        x="Symbol",
+        x="Symbol+Logo",
         y="Volume of Transfers",
         text="Volume of Transfers",
         color="Symbol"
@@ -117,13 +111,12 @@ else:
         showlegend=False
     )
 
-    # --- نمودار ۲: Top 10 by Transfers Count (بدون Unknown + حجم > 0) ------------------------------------------------
+    # --- نمودار ۲: Top 10 by Transfers Count ------------------------------------------------------------------------
     df_nonzero = df_grouped[df_grouped["Volume of Transfers"] > 0]
     top_transfers = df_nonzero.sort_values("Number of Transfers", ascending=False).head(10)
-
     fig2 = px.bar(
         top_transfers,
-        x="Symbol",
+        x="Symbol+Logo",
         y="Number of Transfers",
         text="Number of Transfers",
         color="Symbol"
