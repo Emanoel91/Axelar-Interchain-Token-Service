@@ -625,7 +625,7 @@ col1, col2, col3 = st.columns(3)
 
 # Source Chains by Transactions
 with col1:
-    st.subheader("Source Chains Sorted by Transactions")
+    st.subheader("🔗Source Chains by Transactions")
     df_display1 = df_sources[["source_chain", "num_txs"]].copy()
     df_display1 = df_display1.sort_values("num_txs", ascending=False).reset_index(drop=True)
     df_display1.index = df_display1.index + 1  
@@ -638,7 +638,7 @@ with col1:
 
 # Source Chains by Volume
 with col2:
-    st.subheader("Source Chains Sorted by Volume")
+    st.subheader("💸Source Chains by Volume")
     df_display2 = df_sources[["source_chain", "volume"]].copy()
     df_display2 = df_display2.sort_values("volume", ascending=False).reset_index(drop=True)
     df_display2.index = df_display2.index + 1  
@@ -651,7 +651,7 @@ with col2:
 
 # Source Chains by Users
 with col3:
-    st.subheader("Source Chains Sorted by Users")
+    st.subheader("👥Source Chains by Users")
     df_display3 = df_source_chains_stats.copy()
     df_display3.index = df_display3.index + 1
     df_display3 = df_display3.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
@@ -814,7 +814,7 @@ col1, col2, col3 = st.columns(3)
 
 # Destination Chains by Transactions
 with col1:
-    st.subheader("Destination Chains Sorted by Transactions")
+    st.subheader("🔗Destination Chains by Transactions")
     df_display1 = df_destinations[["destination_chain", "num_txs"]].copy()
     df_display1 = df_display1.sort_values("num_txs", ascending=False).reset_index(drop=True)
     df_display1.index = df_display1.index + 1  
@@ -827,7 +827,7 @@ with col1:
 
 # Destination Chains by Volume
 with col2:
-    st.subheader("Destination Chains Sorted by Volume")
+    st.subheader("💸Destination Chains by Volume")
     df_display2 = df_destinations[["destination_chain", "volume"]].copy()
     df_display2 = df_display2.sort_values("volume", ascending=False).reset_index(drop=True)
     df_display2.index = df_display2.index + 1  
@@ -840,7 +840,7 @@ with col2:
 
 # Destination Chains by Users
 with col3:
-    st.subheader("Destination Chains Sorted by Users")
+    st.subheader("👥Destination Chains by Users")
     df_display3 = df_destination_chains_stats.copy()
     df_display3.index = df_display3.index + 1
     df_display3 = df_display3.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
@@ -1003,7 +1003,7 @@ col1, col2, col3 = st.columns(3)
 
 # Paths by Transactions
 with col1:
-    st.subheader("Paths Sorted by Transactions")
+    st.subheader("🔗Paths by Transactions")
     df_display1 = df_paths[["path", "num_txs"]].copy()
     df_display1 = df_display1.sort_values("num_txs", ascending=False).reset_index(drop=True)
     df_display1.index = df_display1.index + 1  
@@ -1016,7 +1016,7 @@ with col1:
 
 # Paths by Volume
 with col2:
-    st.subheader("Paths Sorted by Volume")
+    st.subheader("💸Paths by Volume")
     df_display2 = df_paths[["path", "volume"]].copy()
     df_display2 = df_display2.sort_values("volume", ascending=False).reset_index(drop=True)
     df_display2.index = df_display2.index + 1  
@@ -1029,7 +1029,7 @@ with col2:
 
 # Paths by Users
 with col3:
-    st.subheader("Paths Sorted by Users")
+    st.subheader("👥Paths by Users")
     df_display3 = df_paths_stats.copy()
     df_display3.index = df_display3.index + 1
     df_display3 = df_display3.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
