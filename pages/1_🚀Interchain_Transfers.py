@@ -1039,12 +1039,13 @@ with col3:
 col1, col2, col3 = st.columns(3)
 with col1:
     top5 = df_paths.sort_values("num_txs", ascending=False).head(5)
-    fig = px.bar(top5, x="path", y="num_txs", title="Top 5 Paths by Transactions", text="num_txs")
+    fig = px.bar(top5, x="path", y="num_txs", title="Top 5 Paths by Transactions", text="num_txs", labels={"path": "", "num_txs": "Txns count"})
     st.plotly_chart(fig, use_container_width=True)
 with col2:
-    top5 = df_paths.sort_values("volume", ascending=False).head(5)
-    fig = px.bar(top5, x="path", y="volume", title="Top 5 Paths by Volume", text="volume")
+    top5 = df_paths.sort_values("volume", ascending=False).head(5).copy()
+    top5["volume"] = top5["volume"].round(0)
+    fig = px.bar(top5, x="path", y="volume", title="Top 5 Paths by Volume", text="volume", labels={"path": "", "volume": "$USD"})
     st.plotly_chart(fig, use_container_width=True)
 with col3:
-    fig = px.bar(df_top_paths_stats, x="Path", y="Number of Users", title="Top 5 Paths by Users", text="Number of Users")
+    fig = px.bar(df_top_paths_stats, x="Path", y="Number of Users", title="Top 5 Paths by Users", text="Number of Users", labels={"path": "", "num_txs": "Wallet count"})
     st.plotly_chart(fig, use_container_width=True)
