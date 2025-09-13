@@ -538,7 +538,7 @@ def load_source_chains_stats(start_date, end_date):
         ) 
 )
 
-SELECT source_chain as "Source Chain", count(distinct user) as "Number of Users", round(sum(fee)) as "Total Gas Fee"
+SELECT source_chain as "Source Chain", count(distinct user) as "Number of Users"
 FROM axelar_service
 where created_at::date>='{start_str}' and created_at::date<='{end_str}'
 group by 1
