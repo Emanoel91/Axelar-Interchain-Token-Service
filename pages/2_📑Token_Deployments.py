@@ -302,7 +302,6 @@ from table1
 group by 1, 2
 order by 1
 
-
     """
 
     df = pd.read_sql(query, conn)
@@ -350,6 +349,31 @@ order by 1
     df = pd.read_sql(query, conn)
     return df
 
+# === Load Data: Row 3,4 ==================================================================
+df_deploy_fee_stats_overtime = load_deploy_fee_stats_overtime(timeframe, start_date, end_date)
+df_avg_median_fee_stats = load_avg_median_fee_stats(timeframe, start_date, end_date)
+# === Charts: Row 3,4 =====================================================================
+
+col1, col2 = st.columns(2)
+
+with col1:
+    fig_b1 = go.Figure()
+    # Stacked Bars
+    fig_stacked_fee_chain = px.bar(df_deploy_fee_stats_overtime, x="Date", y="Total Gas Fees", color="Deployed Chain", 
+                                title="Amount of Fees Paid Based on the Deployed Chain Over Time")
+    fig_stacked_fee_chain.update_layout(barmode="stack", yaxis_title="$USD", xaxis_title="", legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5, title=""))
+    st.plotly_chart(fig_stacked_fee_chain, use_container_width=True)
+
+with col2:
+    df_norm = df_deploy_fee_stats_overtime.copy()
+    df_norm['total_per_date'] = df_norm.groupby('Date')['Total Gas Fees'].transform('sum')
+    df_norm['normalized'] = df_norm['Total Gas Fees'] / df_norm['total_per_date']
+    fig_norm_stacked_fee_chain = px.bar(df_norm, x='Date', y='normalized', color='Deployed Chain', title="Share of Fees Paid Based on the Deployed Chain Over Time",
+                                     text=df_norm['Total Gas Fees'].astype(str))
+    fig_norm_stacked_fee_chain.update_layout(barmode='stack', xaxis_title="", yaxis_title="%", yaxis=dict(tickformat='%'), 
+                                          legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, title=""))
+    fig_norm_stacked_fee_chain.update_traces(textposition='inside')
+    st.plotly_chart(fig_norm_stacked_fee_chain, use_container_width=True)
 # --- Row 5 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @st.cache_data
 def load_gas_fee_stats(start_date, end_date):
@@ -522,8 +546,7 @@ order by 1 desc
 # --- Load Data --------------------------------------------------------------------------------------------------------------------
 
 
-df_deploy_fee_stats_overtime = load_deploy_fee_stats_overtime(timeframe, start_date, end_date)
-df_avg_median_fee_stats = load_avg_median_fee_stats(timeframe, start_date, end_date)
+
 df_deploy_stats_by_chain = load_deploy_stats_by_chain(start_date, end_date)
 df_gas_fee_stats = load_gas_fee_stats(start_date, end_date)
 df_list_tokens = load_list_tokens(start_date, end_date)
