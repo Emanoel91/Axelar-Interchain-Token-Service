@@ -361,7 +361,7 @@ with col1:
     # Stacked Bars
     fig_stacked_fee_chain = px.bar(df_deploy_fee_stats_overtime, x="Date", y="Total Gas Fees", color="Deployed Chain", 
                                 title="Amount of Fees Paid Based on the Deployed Chain Over Time")
-    fig_stacked_fee_chain.update_layout(barmode="stack", yaxis_title="$USD", xaxis_title="")
+    fig_stacked_fee_chain.update_layout(barmode="stack", yaxis_title="$USD", xaxis_title="", legend=dict(title=""))
     st.plotly_chart(fig_stacked_fee_chain, use_container_width=True)
 
 with col2:
@@ -370,8 +370,7 @@ with col2:
     df_norm['normalized'] = df_norm['Total Gas Fees'] / df_norm['total_per_date']
     fig_norm_stacked_fee_chain = px.bar(df_norm, x='Date', y='normalized', color='Deployed Chain', title="Share of Fees Paid Based on the Deployed Chain Over Time",
                                      text=df_norm['Total Gas Fees'].astype(str))
-    fig_norm_stacked_fee_chain.update_layout(barmode='stack', xaxis_title="", yaxis_title="%", yaxis=dict(tickformat='%'), 
-                                          legend=dict(orientation="h", yanchor="bottom", y=1.02, xanchor="center", x=0.5, title=""))
+    fig_norm_stacked_fee_chain.update_layout(barmode='stack', xaxis_title="", yaxis_title="%", yaxis=dict(tickformat='%'), legend=dict(title=""))
     fig_norm_stacked_fee_chain.update_traces(textposition='inside')
     st.plotly_chart(fig_norm_stacked_fee_chain, use_container_width=True)
 # --- Row 5 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
