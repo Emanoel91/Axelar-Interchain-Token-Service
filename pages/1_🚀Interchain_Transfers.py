@@ -604,7 +604,7 @@ def load_Top_source_chains_stats(start_date, end_date):
         ) 
 )
 
-SELECT source_chain as "Source Chain", count(distinct user) as "Number of Users", round(sum(fee)) as "Total Gas Fee"
+SELECT source_chain as "Source Chain", count(distinct user) as "Number of Users"
 FROM axelar_service
 where created_at::date>='{start_str}' and created_at::date<='{end_str}'
 group by 1
@@ -621,20 +621,6 @@ df_source_chains_stats = load_source_chains_stats(start_date, end_date)
 df_Top_source_chains_stats = load_Top_source_chains_stats(start_date, end_date)
 
 # === Source Chains Tables ===================================================
-col1, col2, col3 = st.columns(3)
-with col1:
-    st.subheader("Source Chains by Transactions")
-    st.dataframe(df_sources.sort_values("num_txs", ascending=False).reset_index(drop=True))
-with col2:
-    st.subheader("Source Chains by Volume")
-    st.dataframe(df_sources.sort_values("volume", ascending=False).reset_index(drop=True))
-with col3:
-    st.subheader("Source Chains by User")
-    df_display = df_source_chains_stats.copy()
-    df_display.index = df_display.index + 1
-    df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
-    st.dataframe(df_display, use_container_width=True)
-
 col1, col2, col3 = st.columns(3)
 
 # Source Chains by Transactions
