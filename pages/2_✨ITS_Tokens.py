@@ -177,7 +177,12 @@ if "start_date" in locals() and "end_date" in locals():
             color="Symbol"
         )
         fig1.update_traces(texttemplate='%{text:.2s}', textposition='outside')
-        fig1.update_layout(title="Top 10 Tokens by Interchain Transfers Volume", xaxis_title="Token", yaxis_title="Volume")
+        fig1.update_layout(
+            title="Top 10 Tokens by Interchain Transfers Volume",
+            xaxis_title="Token",
+            yaxis_title="Volume",
+            showlegend=False
+        )
 
         # --- نمودار ۲: Top 10 by Transfers Count -----------------------------------------------------------------------
         top_transfers = df.sort_values("Number of Transfers", ascending=False).head(10)
@@ -189,7 +194,12 @@ if "start_date" in locals() and "end_date" in locals():
             color="Symbol"
         )
         fig2.update_traces(texttemplate='%{text}', textposition='outside')
-        fig2.update_layout(title="Top 10 Tokens by Interchain Transfers Count", xaxis_title="Token", yaxis_title="Transfers")
+        fig2.update_layout(
+            title="Top 10 Tokens by Interchain Transfers Count",
+            xaxis_title="Token",
+            yaxis_title="Transfers",
+            showlegend=False
+        )
 
         # نمایش در دو ردیف
         st.plotly_chart(fig1, use_container_width=True)
