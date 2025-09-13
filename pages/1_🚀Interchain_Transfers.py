@@ -625,7 +625,7 @@ col1, col2, col3 = st.columns(3)
 
 # Source Chains by Transactions
 with col1:
-    st.subheader("🔗Sources by Transactions")
+    st.markdown("<h5 style='font-size:18px; font-weight:bold;'>🔗 Source Chains by Transactions</h5>", unsafe_allow_html=True)
     df_display1 = df_sources[["source_chain", "num_txs"]].copy()
     df_display1 = df_display1.sort_values("num_txs", ascending=False).reset_index(drop=True)
     df_display1.index = df_display1.index + 1  
@@ -638,7 +638,7 @@ with col1:
 
 # Source Chains by Volume
 with col2:
-    st.subheader("💸Sources by Volume")
+    st.markdown("<h5 style='font-size:18px; font-weight:bold;'>💸 Source Chains by Volume</h5>", unsafe_allow_html=True)
     df_display2 = df_sources[["source_chain", "volume"]].copy()
     df_display2 = df_display2.sort_values("volume", ascending=False).reset_index(drop=True)
     df_display2.index = df_display2.index + 1  
@@ -651,7 +651,7 @@ with col2:
 
 # Source Chains by Users
 with col3:
-    st.subheader("👥Sources by Users")
+    st.markdown("<h5 style='font-size:18px; font-weight:bold;'>👥 Source Chains by Users</h5>", unsafe_allow_html=True)
     df_display3 = df_source_chains_stats.copy()
     df_display3.index = df_display3.index + 1
     df_display3 = df_display3.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
@@ -816,7 +816,7 @@ col1, col2, col3 = st.columns(3)
 
 # Destination Chains by Transactions
 with col1:
-    st.subheader("🔗Destinations by Txns")
+    st.markdown("<h5 style='font-size:18px; font-weight:bold;'>🔗 Destination Chains by Transactions</h5>", unsafe_allow_html=True)
     df_display1 = df_destinations[["destination_chain", "num_txs"]].copy()
     df_display1 = df_display1.sort_values("num_txs", ascending=False).reset_index(drop=True)
     df_display1.index = df_display1.index + 1  
@@ -829,7 +829,7 @@ with col1:
 
 # Destination Chains by Volume
 with col2:
-    st.subheader("💸Destinations by Volume")
+    st.markdown("<h5 style='font-size:18px; font-weight:bold;'>💸 Destination Chains by Volume</h5>", unsafe_allow_html=True)
     df_display2 = df_destinations[["destination_chain", "volume"]].copy()
     df_display2 = df_display2.sort_values("volume", ascending=False).reset_index(drop=True)
     df_display2.index = df_display2.index + 1  
@@ -842,7 +842,7 @@ with col2:
 
 # Destination Chains by Users
 with col3:
-    st.subheader("👥Destinations by Users")
+    st.markdown("<h5 style='font-size:18px; font-weight:bold;'>👥 Destination Chains by Users</h5>", unsafe_allow_html=True)
     df_display3 = df_destination_chains_stats.copy()
     df_display3.index = df_display3.index + 1
     df_display3 = df_display3.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
@@ -1007,7 +1007,7 @@ col1, col2, col3 = st.columns(3)
 
 # Paths by Transactions
 with col1:
-    st.subheader("🔗Paths by Transactions")
+    st.markdown("<h5 style='font-size:18px; font-weight:bold;'>🔗 Paths by Transactions</h5>", unsafe_allow_html=True)
     df_display1 = df_paths[["path", "num_txs"]].copy()
     df_display1 = df_display1.sort_values("num_txs", ascending=False).reset_index(drop=True)
     df_display1.index = df_display1.index + 1  
@@ -1033,7 +1033,7 @@ with col2:
 
 # Paths by Users
 with col3:
-    st.subheader("👥Paths by Users")
+    st.markdown("<h5 style='font-size:18px; font-weight:bold;'>👥 Paths by Users</h5>", unsafe_allow_html=True)
     df_display3 = df_paths_stats.copy()
     df_display3.index = df_display3.index + 1
     df_display3 = df_display3.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
