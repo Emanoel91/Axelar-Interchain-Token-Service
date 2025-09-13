@@ -85,11 +85,14 @@ else:
 
     st.subheader("📑 Interchain Token Transfers Table")
 
-    # نمایش جدول با HTML (لوگو + داده‌ها)
-    st.write(
-        df_display.to_html(escape=False, index=False),
-        unsafe_allow_html=True
-    )
+    # نمایش جدول با HTML داخل یک div قابل اسکرول
+    scrollable_table = f"""
+    <div style="max-height:300px; overflow-y:auto;">
+        {df_display.to_html(escape=False, index=False)}
+    </div>
+    """
+
+    st.write(scrollable_table, unsafe_allow_html=True)
 
     # --- نمودار ۱: Top 10 by Volume (بدون Unknown) -------------------------------------------------------------------
     df_grouped = (
