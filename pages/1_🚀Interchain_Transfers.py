@@ -312,9 +312,10 @@ def load_interchain_fees_data(timeframe, start_date, end_date):
         data:approved:returnValues:contractAddress ilike '%0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C%' -- Interchain Token Service
         or data:approved:returnValues:contractAddress ilike '%axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr%' -- Axelar ITS Hub
         ))
-    SELECT date_trunc('month',created_at) as "Date", round(sum(fee)) as "Transfer Fees", sum("Transfer Fees") over (order by "Date") as "Total Transfer Fees",
+    SELECT date_trunc('{timeframe}',created_at) as "Date", round(sum(fee)) as "Transfer Fees", sum("Transfer Fees") over (order by "Date") as "Total Transfer Fees",
     round(avg(fee),3) as "Average Gas Fee", round(median(fee),3) as "Median Gas Fee"
     FROM axelar_service
+    where created_at::date>='{start_str}' and created_at::date<='{end_str}'
     group by 1
     order by 1
     """
