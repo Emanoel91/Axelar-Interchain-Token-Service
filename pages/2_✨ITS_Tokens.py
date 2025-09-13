@@ -6,6 +6,7 @@ import plotly.graph_objects as go
 from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import networkx as nx
+import time
 
 # --- Page Config ------------------------------------------------------------------------------------------------------
 st.set_page_config(
@@ -105,3 +106,61 @@ with col2:
 
 with col3:
     end_date = st.date_input("End Date", value=pd.to_datetime("2025-09-30"))
+
+# --------------------------------------------------------------------------------------------------------------------
+# --- تبدیل تاریخ به یونیکس (ثانیه) ----------------------------------------------------------------------------------
+def to_unix_timestamp(dt):
+    return int(time.mktime(dt.timetuple()))
+
+# --- دریافت داده‌ها از API ها -----------------------------------------------------------------------------------------
+@st.cache_data
+def load_data(start_date, end_date):
+    # تبدیل تاریخ‌ها به timestamp
+    from_time = to_unix_timestamp(pd.to_datetime(start_date))
+    to_time = to_unix_timestamp(pd.to_datetime(end_date))
+
+    # API اول: داده‌های تراکنش
+    url_tx = f"https://api.axelarscan.io/gmp/GMPTopITSAssets?fromTime={from_time}&toTime={to_time}"
+    tx_data = requests.get(url_tx).json().get("data", [])
+
+    # API دوم: اطلاعات توکن‌ها (symbol و addresses)
+    url_assets = "https://api.axelarscan.io/api/getITSAssets"
+    assets_data = requests.get(url_assets).json()
+
+    # ساخت دیکشنری برای نگاشت address → symbol
+    address_to_symbol = {}
+    for asset in assets_data:
+        symbol = asset.get("symbol", "")
+        addresses = asset.get("addresses", [])
+        if isinstance(addresses, str):  # گاهی addresses به صورت string برمی‌گردد
+            try:
+                addresses = eval(addresses)
+            except:
+                addresses = []
+        for addr in addresses:
+            address_to_symbol[addr.lower()] = symbol
+
+    # ساخت DataFrame
+    df = pd.DataFrame(tx_data)
+    if df.empty:
+        return pd.DataFrame(columns=["Token Address", "Symbol", "Number of Transfers", "Volume of Transfers"])
+
+    df["Token Address"] = df["key"]
+    df["Symbol"] = df["key"].str.lower().map(address_to_symbol).fillna("Unknown")
+    df["Number of Transfers"] = df["num_txs"]
+    df["Volume of Transfers"] = df["volume"]
+
+    df = df[["Token Address", "Symbol", "Number of Transfers", "Volume of Transfers"]]
+
+    return df
+
+# --- اجرای اصلی ------------------------------------------------------------------------------------------------------
+st.subheader("📑 Interchain Token Transfers")
+
+if "start_date" in locals() and "end_date" in locals():
+    df = load_data(start_date, end_date)
+
+    if df.empty:
+        st.warning("⛔ No data available for the selected time range.")
+    else:
+        st.dataframe(df, use_container_width=True)
