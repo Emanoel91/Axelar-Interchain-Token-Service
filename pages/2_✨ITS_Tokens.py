@@ -165,3 +165,32 @@ if "start_date" in locals() and "end_date" in locals():
         st.warning("⛔ No data available for the selected time range.")
     else:
         st.dataframe(df, use_container_width=True)
+
+# --------------------------------------------------------------------------------------------------------------------
+# --- نمودار ۱: Top 10 by Volume --------------------------------------------------------------------------------
+        top_volume = df.sort_values("Volume of Transfers", ascending=False).head(10)
+        fig1 = px.bar(
+            top_volume,
+            x="Symbol",
+            y="Volume of Transfers",
+            text="Volume of Transfers",
+            color="Symbol"
+        )
+        fig1.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+        fig1.update_layout(title="Top 10 Tokens by Interchain Transfers Volume", xaxis_title="Token", yaxis_title="Volume")
+
+        # --- نمودار ۲: Top 10 by Transfers Count -----------------------------------------------------------------------
+        top_transfers = df.sort_values("Number of Transfers", ascending=False).head(10)
+        fig2 = px.bar(
+            top_transfers,
+            x="Symbol",
+            y="Number of Transfers",
+            text="Number of Transfers",
+            color="Symbol"
+        )
+        fig2.update_traces(texttemplate='%{text}', textposition='outside')
+        fig2.update_layout(title="Top 10 Tokens by Interchain Transfers Count", xaxis_title="Token", yaxis_title="Transfers")
+
+        # نمایش در دو ردیف
+        st.plotly_chart(fig1, use_container_width=True)
+        st.plotly_chart(fig2, use_container_width=True)
