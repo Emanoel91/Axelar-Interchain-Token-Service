@@ -1020,7 +1020,7 @@ with col1:
 
 # Paths by Volume
 with col2:
-    st.subheader("💸Paths by Volume")
+    st.markdown("<h5 style='font-size:16px;'>💸 Paths by Volume</h5>", unsafe_allow_html=True)
     df_display2 = df_paths[["path", "volume"]].copy()
     df_display2 = df_display2.sort_values("volume", ascending=False).reset_index(drop=True)
     df_display2.index = df_display2.index + 1  
