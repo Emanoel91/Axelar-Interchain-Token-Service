@@ -824,7 +824,7 @@ with col3:
     df_display3 = df_display3.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
     st.dataframe(df_display3, use_container_width=True)
 
-# === Destination Chains Charts ===
+# === Destination Chains Charts ==============================================================================================
 col1, col2, col3 = st.columns(3)
 with col1:
     top5 = df_destinations.sort_values("num_txs", ascending=False).head(5)
@@ -835,7 +835,7 @@ with col2:
     fig = px.bar(top5, x="destination_chain", y="volume", title="Top 5 Destination Chains by Volume", text="volume")
     st.plotly_chart(fig, use_container_width=True)
 with col3:
-    fig = px.bar(df_destination_chains_stats, x="Destination Chain", y="Number of Users", title="Top 5 Destination Chains by Users", text="Number of Users")
+    fig = px.bar(df_top_destination_chains_stats, x="Destination Chain", y="Number of Users", title="Top 5 Destination Chains by Users", text="Number of Users")
     st.plotly_chart(fig, use_container_width=True)
 
 # ------- Path: Snowflake ------------------------------------
