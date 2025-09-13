@@ -1047,5 +1047,5 @@ with col2:
     fig = px.bar(top5, x="path", y="volume", title="Top 5 Paths by Volume", text="volume", labels={"path": "", "volume": "$USD"})
     st.plotly_chart(fig, use_container_width=True)
 with col3:
-    fig = px.bar(df_top_paths_stats, x="Path", y="Number of Users", title="Top 5 Paths by Users", text="Number of Users", labels={"path": "", "num_txs": "Wallet count"})
+    fig = px.bar(df_top_paths_stats, x="Path", y="Number of Users", title="Top 5 Paths by Users", text="Number of Users", labels={"Path": "", "Number of Users": "Wallet count"})
     st.plotly_chart(fig, use_container_width=True)
