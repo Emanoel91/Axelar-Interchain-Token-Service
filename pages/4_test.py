@@ -87,7 +87,7 @@ else:
 
     # نمایش جدول با HTML داخل یک div قابل اسکرول
     scrollable_table = f"""
-    <div style="max-height:300px; overflow-y:auto;">
+    <div style="max-height:600px; overflow-y:auto;">
         {df_display.to_html(escape=False, index=False)}
     </div>
     """
