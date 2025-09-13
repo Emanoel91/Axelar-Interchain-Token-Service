@@ -115,8 +115,8 @@ else:
     fig1.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
     fig1.update_layout(
         title="Top 10 Tokens by Interchain Transfers Volume",
-        xaxis_title="Token",
-        yaxis_title="Volume",
+        xaxis_title=" ",
+        yaxis_title="$USD",
         showlegend=False
     )
 
@@ -134,8 +134,8 @@ else:
     fig2.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
     fig2.update_layout(
         title="Top 10 Tokens by Interchain Transfers Count",
-        xaxis_title="Token",
-        yaxis_title="Transfers",
+        xaxis_title=" ",
+        yaxis_title="Transfers count",
         showlegend=False
     )
 
