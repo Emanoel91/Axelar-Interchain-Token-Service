@@ -106,7 +106,6 @@ def load_data(start_date, end_date):
 
 # --- Main Run ------------------------------------------------------------------------------------------------------
 st.set_page_config(page_title="ITS Dashboard", layout="wide")
-st.title("✨ Interchain Token Service (ITS) Dashboard")
 
 col1, col2 = st.columns(2)
 with col1:
