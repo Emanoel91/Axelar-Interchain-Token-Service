@@ -22,10 +22,13 @@ def load_data(start_date, end_date):
     url_assets = "https://api.axelarscan.io/api/getITSAssets"
     assets_data = requests.get(url_assets).json()
 
-    # ساخت نگاشت address → symbol
+    # ساخت نگاشت‌ها: address → symbol و symbol → image
     address_to_symbol = {}
+    symbol_to_image = {}
     for asset in assets_data:
         symbol = asset.get("symbol", "")
+        image = asset.get("image", "")
+        symbol_to_image[symbol] = image
         addresses = asset.get("addresses", [])
         if isinstance(addresses, str):
             try:
@@ -38,16 +41,17 @@ def load_data(start_date, end_date):
     # ساخت DataFrame از داده‌های تراکنش
     df = pd.DataFrame(tx_data)
     if df.empty:
-        return pd.DataFrame(columns=["Token Address", "Symbol", "Number of Transfers", "Volume of Transfers"])
+        return pd.DataFrame(columns=["Token Address", "Symbol", "Logo", "Number of Transfers", "Volume of Transfers"]), {}
 
     df["Token Address"] = df["key"]
     df["Symbol"] = df["key"].str.lower().map(address_to_symbol).fillna("Unknown")
+    df["Logo"] = df["Symbol"].map(symbol_to_image).fillna("")
     df["Number of Transfers"] = df["num_txs"].astype(int)
     df["Volume of Transfers"] = df["volume"].astype(float)
 
-    df = df[["Token Address", "Symbol", "Number of Transfers", "Volume of Transfers"]]
+    df = df[["Token Address", "Symbol", "Logo", "Number of Transfers", "Volume of Transfers"]]
 
-    return df
+    return df, symbol_to_image
 
 # --- اجرای اصلی ------------------------------------------------------------------------------------------------------
 st.set_page_config(page_title="ITS Dashboard", layout="wide")
@@ -61,7 +65,7 @@ with col2:
     end_date = st.date_input("End Date", value=pd.to_datetime("2025-09-30"))
 
 # بارگذاری داده‌ها
-df = load_data(start_date, end_date)
+df, symbol_to_image = load_data(start_date, end_date)
 
 if df.empty:
     st.warning("⛔ No data available for the selected time range.")
@@ -71,8 +75,21 @@ else:
     df_display["Number of Transfers"] = df_display["Number of Transfers"].map("{:,}".format)
     df_display["Volume of Transfers"] = df_display["Volume of Transfers"].map("{:,.0f}".format)
 
+    # ساخت HTML برای نمایش لوگو
+    def logo_html(url):
+        if url:
+            return f'<img src="{url}" style="width:20px;height:20px;border-radius:50%;">'
+        return ""
+
+    df_display["Logo"] = df_display["Logo"].apply(logo_html)
+
     st.subheader("📑 Interchain Token Transfers Table")
-    st.dataframe(df_display, use_container_width=True)
+
+    # نمایش جدول با HTML (لوگو + داده‌ها)
+    st.write(
+        df_display.to_html(escape=False, index=False),
+        unsafe_allow_html=True
+    )
 
     # --- نمودار ۱: Top 10 by Volume (بدون Unknown) -------------------------------------------------------------------
     df_grouped = (
