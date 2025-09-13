@@ -14,13 +14,15 @@ def load_data(start_date, end_date):
     from_time = to_unix_timestamp(pd.to_datetime(start_date))
     to_time = to_unix_timestamp(pd.to_datetime(end_date))
 
+    # API اول: تراکنش‌ها
     url_tx = f"https://api.axelarscan.io/gmp/GMPTopITSAssets?fromTime={from_time}&toTime={to_time}"
     tx_data = requests.get(url_tx).json().get("data", [])
 
+    # API دوم: اطلاعات توکن‌ها
     url_assets = "https://api.axelarscan.io/api/getITSAssets"
     assets_data = requests.get(url_assets).json()
 
-    # آدرس به سمبل
+    # ساخت نگاشت address → symbol
     address_to_symbol = {}
     for asset in assets_data:
         symbol = asset.get("symbol", "")
@@ -33,6 +35,7 @@ def load_data(start_date, end_date):
         for addr in addresses:
             address_to_symbol[addr.lower()] = symbol
 
+    # ساخت DataFrame از داده‌های تراکنش
     df = pd.DataFrame(tx_data)
     if df.empty:
         return pd.DataFrame(columns=["Symbol", "Number of Transfers", "Volume of Transfers"])
@@ -41,7 +44,7 @@ def load_data(start_date, end_date):
     df["Number of Transfers"] = df["num_txs"].astype(int)
     df["Volume of Transfers"] = df["volume"].astype(float)
 
-    # --- تجمیع بر اساس Symbol ---
+    # --- تجمیع بر اساس Symbol (جمع همه کانترکت‌ها) ---
     df_grouped = df.groupby("Symbol", as_index=False).agg({
         "Number of Transfers": "sum",
         "Volume of Transfers": "sum"
@@ -50,50 +53,62 @@ def load_data(start_date, end_date):
     return df_grouped
 
 # --- اجرای اصلی ------------------------------------------------------------------------------------------------------
-st.subheader("📑 Interchain Token Transfers")
+st.set_page_config(page_title="ITS Dashboard", layout="wide")
+st.title("✨ Interchain Token Service (ITS) Dashboard")
 
-if "start_date" in locals() and "end_date" in locals():
-    df = load_data(start_date, end_date)
+# انتخاب بازه زمانی
+col1, col2 = st.columns(2)
+with col1:
+    start_date = st.date_input("Start Date", value=pd.to_datetime("2022-09-01"))
+with col2:
+    end_date = st.date_input("End Date", value=pd.to_datetime("2025-09-30"))
 
-    if df.empty:
-        st.warning("⛔ No data available for the selected time range.")
-    else:
-        st.dataframe(df, use_container_width=True)
+# بارگذاری داده‌ها
+df = load_data(start_date, end_date)
 
-        # --- نمودار ۱: Top 10 by Volume --------------------------------------------------------------------------------
-        top_volume = df.sort_values("Volume of Transfers", ascending=False).head(10)
-        fig1 = px.bar(
-            top_volume,
-            x="Symbol",
-            y="Volume of Transfers",
-            text="Volume of Transfers",
-            color="Symbol"
-        )
-        fig1.update_traces(texttemplate='%{text:.2s}', textposition='outside')
-        fig1.update_layout(
-            title="Top 10 Tokens by Interchain Transfers Volume",
-            xaxis_title="Token",
-            yaxis_title="Volume",
-            showlegend=False
-        )
+if df.empty:
+    st.warning("⛔ No data available for the selected time range.")
+else:
+    # جدول
+    st.subheader("📑 Interchain Token Transfers Table")
+    st.dataframe(df, use_container_width=True)
 
-        # --- نمودار ۲: Top 10 by Transfers Count -----------------------------------------------------------------------
-        top_transfers = df.sort_values("Number of Transfers", ascending=False).head(10)
-        fig2 = px.bar(
-            top_transfers,
-            x="Symbol",
-            y="Number of Transfers",
-            text="Number of Transfers",
-            color="Symbol"
-        )
-        fig2.update_traces(texttemplate='%{text}', textposition='outside')
-        fig2.update_layout(
-            title="Top 10 Tokens by Interchain Transfers Count",
-            xaxis_title="Token",
-            yaxis_title="Transfers",
-            showlegend=False
-        )
+    # --- نمودار ۱: Top 10 by Volume --------------------------------------------------------------------------------
+    top_volume = df.sort_values("Volume of Transfers", ascending=False).head(10)
+    fig1 = px.bar(
+        top_volume,
+        x="Symbol",
+        y="Volume of Transfers",
+        text="Volume of Transfers",
+        color="Symbol"
+    )
+    fig1.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+    fig1.update_layout(
+        title="Top 10 Tokens by Interchain Transfers Volume",
+        xaxis_title="Token",
+        yaxis_title="Volume",
+        showlegend=False
+    )
 
-        # نمایش در دو ردیف
-        st.plotly_chart(fig1, use_container_width=True)
-        st.plotly_chart(fig2, use_container_width=True)
+    # --- نمودار ۲: Top 10 by Transfers Count (فقط توکن‌هایی با حجم > 0) -------------------------------------------
+    df_nonzero = df[df["Volume of Transfers"] > 0]
+    top_transfers = df_nonzero.sort_values("Number of Transfers", ascending=False).head(10)
+
+    fig2 = px.bar(
+        top_transfers,
+        x="Symbol",
+        y="Number of Transfers",
+        text="Number of Transfers",
+        color="Symbol"
+    )
+    fig2.update_traces(texttemplate='%{text}', textposition='outside')
+    fig2.update_layout(
+        title="Top 10 Tokens by Interchain Transfers Count",
+        xaxis_title="Token",
+        yaxis_title="Transfers",
+        showlegend=False
+    )
+
+    # نمایش نمودارها
+    st.plotly_chart(fig1, use_container_width=True)
+    st.plotly_chart(fig2, use_container_width=True)
