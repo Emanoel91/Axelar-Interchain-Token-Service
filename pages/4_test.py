@@ -38,19 +38,16 @@ def load_data(start_date, end_date):
     # ساخت DataFrame از داده‌های تراکنش
     df = pd.DataFrame(tx_data)
     if df.empty:
-        return pd.DataFrame(columns=["Symbol", "Number of Transfers", "Volume of Transfers"])
+        return pd.DataFrame(columns=["Token Address", "Symbol", "Number of Transfers", "Volume of Transfers"])
 
+    df["Token Address"] = df["key"]
     df["Symbol"] = df["key"].str.lower().map(address_to_symbol).fillna("Unknown")
     df["Number of Transfers"] = df["num_txs"].astype(int)
     df["Volume of Transfers"] = df["volume"].astype(float)
 
-    # --- تجمیع بر اساس Symbol (جمع همه کانترکت‌ها) ---
-    df_grouped = df.groupby("Symbol", as_index=False).agg({
-        "Number of Transfers": "sum",
-        "Volume of Transfers": "sum"
-    })
+    df = df[["Token Address", "Symbol", "Number of Transfers", "Volume of Transfers"]]
 
-    return df_grouped
+    return df
 
 # --- اجرای اصلی ------------------------------------------------------------------------------------------------------
 st.set_page_config(page_title="ITS Dashboard", layout="wide")
@@ -69,12 +66,25 @@ df = load_data(start_date, end_date)
 if df.empty:
     st.warning("⛔ No data available for the selected time range.")
 else:
-    # جدول
-    st.subheader("📑 Interchain Token Transfers Table")
-    st.dataframe(df, use_container_width=True)
+    # جدول (اعداد فرمت شده با ویرگول سه‌رقمی)
+    df_display = df.copy()
+    df_display["Number of Transfers"] = df_display["Number of Transfers"].map("{:,}".format)
+    df_display["Volume of Transfers"] = df_display["Volume of Transfers"].map("{:,.0f}".format)
 
-    # --- نمودار ۱: Top 10 by Volume --------------------------------------------------------------------------------
-    top_volume = df.sort_values("Volume of Transfers", ascending=False).head(10)
+    st.subheader("📑 Interchain Token Transfers Table")
+    st.dataframe(df_display, use_container_width=True)
+
+    # --- نمودار ۱: Top 10 by Volume (بدون Unknown) -------------------------------------------------------------------
+    df_grouped = (
+        df[df["Symbol"] != "Unknown"]
+        .groupby("Symbol", as_index=False)
+        .agg({
+            "Number of Transfers": "sum",
+            "Volume of Transfers": "sum"
+        })
+    )
+
+    top_volume = df_grouped.sort_values("Volume of Transfers", ascending=False).head(10)
     fig1 = px.bar(
         top_volume,
         x="Symbol",
@@ -82,7 +92,7 @@ else:
         text="Volume of Transfers",
         color="Symbol"
     )
-    fig1.update_traces(texttemplate='%{text:.2s}', textposition='outside')
+    fig1.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
     fig1.update_layout(
         title="Top 10 Tokens by Interchain Transfers Volume",
         xaxis_title="Token",
@@ -90,8 +100,8 @@ else:
         showlegend=False
     )
 
-    # --- نمودار ۲: Top 10 by Transfers Count (فقط توکن‌هایی با حجم > 0) -------------------------------------------
-    df_nonzero = df[df["Volume of Transfers"] > 0]
+    # --- نمودار ۲: Top 10 by Transfers Count (بدون Unknown + حجم > 0) ------------------------------------------------
+    df_nonzero = df_grouped[df_grouped["Volume of Transfers"] > 0]
     top_transfers = df_nonzero.sort_values("Number of Transfers", ascending=False).head(10)
 
     fig2 = px.bar(
@@ -101,7 +111,7 @@ else:
         text="Number of Transfers",
         color="Symbol"
     )
-    fig2.update_traces(texttemplate='%{text}', textposition='outside')
+    fig2.update_traces(texttemplate='%{text:,.0f}', textposition='outside')
     fig2.update_layout(
         title="Top 10 Tokens by Interchain Transfers Count",
         xaxis_title="Token",
