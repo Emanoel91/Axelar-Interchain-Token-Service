@@ -306,74 +306,8 @@ order by 1
 
     df = pd.read_sql(query, conn)
     return df
-    
-# --- Row 4 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
-@st.cache_data
-def load_avg_median_fee_stats(timeframe, start_date, end_date):
-    
-    start_str = start_date.strftime("%Y-%m-%d")
-    end_str = end_date.strftime("%Y-%m-%d")
 
-    query = f"""
-    with table1 as (
-SELECT created_at, data:interchain_token_deployment_started:tokenId as token, 
-data:call:transaction:from as deployer, COALESCE(CASE 
-        WHEN IS_ARRAY(data:gas:gas_used_amount) OR IS_OBJECT(data:gas:gas_used_amount) 
-          OR IS_ARRAY(data:gas_price_rate:source_token.token_price.usd) OR IS_OBJECT(data:gas_price_rate:source_token.token_price.usd) 
-        THEN NULL
-        WHEN TRY_TO_DOUBLE(data:gas:gas_used_amount::STRING) IS NOT NULL 
-          AND TRY_TO_DOUBLE(data:gas_price_rate:source_token.token_price.usd::STRING) IS NOT NULL 
-        THEN TRY_TO_DOUBLE(data:gas:gas_used_amount::STRING) * TRY_TO_DOUBLE(data:gas_price_rate:source_token.token_price.usd::STRING)
-        ELSE NULL
-      END, CASE 
-        WHEN IS_ARRAY(data:fees:express_fee_usd) OR IS_OBJECT(data:fees:express_fee_usd) THEN NULL
-        WHEN TRY_TO_DOUBLE(data:fees:express_fee_usd::STRING) IS NOT NULL THEN TRY_TO_DOUBLE(data:fees:express_fee_usd::STRING)
-        ELSE NULL
-      END) AS fee
-FROM axelar.axelscan.fact_gmp 
-WHERE status = 'executed' AND simplified_status = 'received' AND (
-data:approved:returnValues:contractAddress ilike '%0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C%' -- Interchain Token Service
-or data:approved:returnValues:contractAddress ilike '%axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr%' -- Axelar ITS Hub
-) AND data:interchain_token_deployment_started:event='InterchainTokenDeploymentStarted'
-and created_at::date>='{start_str}' and created_at::date<='{end_str}')
-
-select date_trunc('{timeframe}',created_at) as "Date", round(avg(fee),3) as "Avg Gas Fee",
-round(median(fee),3) as "Median Gas Fee"
-from table1
-group by 1
-order by 1
-
-
-    """
-
-    df = pd.read_sql(query, conn)
-    return df
-
-# === Load Data: Row 3,4 ==================================================================
-df_deploy_fee_stats_overtime = load_deploy_fee_stats_overtime(timeframe, start_date, end_date)
-df_avg_median_fee_stats = load_avg_median_fee_stats(timeframe, start_date, end_date)
-# === Charts: Row 3,4 =====================================================================
-
-col1, col2 = st.columns(2)
-
-with col1:
-    fig_b1 = go.Figure()
-    # Stacked Bars
-    fig_stacked_fee_chain = px.bar(df_deploy_fee_stats_overtime, x="Date", y="Total Gas Fees", color="Deployed Chain", 
-                                title="Amount of Fees Paid Based on the Deployed Chain Over Time")
-    fig_stacked_fee_chain.update_layout(barmode="stack", yaxis_title="$USD", xaxis_title="", legend=dict(title=""))
-    st.plotly_chart(fig_stacked_fee_chain, use_container_width=True)
-
-with col2:
-    df_norm = df_deploy_fee_stats_overtime.copy()
-    df_norm['total_per_date'] = df_norm.groupby('Date')['Total Gas Fees'].transform('sum')
-    df_norm['normalized'] = df_norm['Total Gas Fees'] / df_norm['total_per_date']
-    fig_norm_stacked_fee_chain = px.bar(df_norm, x='Date', y='normalized', color='Deployed Chain', title="Share of Fees Paid Based on the Deployed Chain Over Time",
-                                     text=df_norm['Total Gas Fees'].astype(str))
-    fig_norm_stacked_fee_chain.update_layout(barmode='stack', xaxis_title="", yaxis_title="%", yaxis=dict(tickformat='%'), legend=dict(title=""))
-    fig_norm_stacked_fee_chain.update_traces(textposition='inside')
-    st.plotly_chart(fig_norm_stacked_fee_chain, use_container_width=True)
-# --- Row 5 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
+# --- Row 4 -----------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @st.cache_data
 def load_gas_fee_stats(start_date, end_date):
     
@@ -410,6 +344,97 @@ from table1
 
     df = pd.read_sql(query, conn)
     return df
+    
+# --- Row 5 ---------------------------------------------------------------------------------------------------------------------------------------------------------------------
+@st.cache_data
+def load_avg_median_fee_stats(timeframe, start_date, end_date):
+    
+    start_str = start_date.strftime("%Y-%m-%d")
+    end_str = end_date.strftime("%Y-%m-%d")
+
+    query = f"""
+    with table1 as (
+SELECT created_at, data:interchain_token_deployment_started:tokenId as token, 
+data:call:transaction:from as deployer, COALESCE(CASE 
+        WHEN IS_ARRAY(data:gas:gas_used_amount) OR IS_OBJECT(data:gas:gas_used_amount) 
+          OR IS_ARRAY(data:gas_price_rate:source_token.token_price.usd) OR IS_OBJECT(data:gas_price_rate:source_token.token_price.usd) 
+        THEN NULL
+        WHEN TRY_TO_DOUBLE(data:gas:gas_used_amount::STRING) IS NOT NULL 
+          AND TRY_TO_DOUBLE(data:gas_price_rate:source_token.token_price.usd::STRING) IS NOT NULL 
+        THEN TRY_TO_DOUBLE(data:gas:gas_used_amount::STRING) * TRY_TO_DOUBLE(data:gas_price_rate:source_token.token_price.usd::STRING)
+        ELSE NULL
+      END, CASE 
+        WHEN IS_ARRAY(data:fees:express_fee_usd) OR IS_OBJECT(data:fees:express_fee_usd) THEN NULL
+        WHEN TRY_TO_DOUBLE(data:fees:express_fee_usd::STRING) IS NOT NULL THEN TRY_TO_DOUBLE(data:fees:express_fee_usd::STRING)
+        ELSE NULL
+      END) AS fee
+FROM axelar.axelscan.fact_gmp 
+WHERE status = 'executed' AND simplified_status = 'received' AND (
+data:approved:returnValues:contractAddress ilike '%0xB5FB4BE02232B1bBA4dC8f81dc24C26980dE9e3C%' -- Interchain Token Service
+or data:approved:returnValues:contractAddress ilike '%axelar1aqcj54lzz0rk22gvqgcn8fr5tx4rzwdv5wv5j9dmnacgefvd7wzsy2j2mr%' -- Axelar ITS Hub
+) AND data:interchain_token_deployment_started:event='InterchainTokenDeploymentStarted'
+and created_at::date>='{start_str}' and created_at::date<='{end_str}')
+
+select date_trunc('{timeframe}',created_at) as "Date", round(avg(fee),3) as "Avg Gas Fee",
+round(median(fee),3) as "Median Gas Fee"
+from table1
+group by 1
+order by 1
+
+    """
+
+    df = pd.read_sql(query, conn)
+    return df
+
+# === Load Data: Row 3,4,5 ==================================================================
+df_deploy_fee_stats_overtime = load_deploy_fee_stats_overtime(timeframe, start_date, end_date)
+df_avg_median_fee_stats = load_avg_median_fee_stats(timeframe, start_date, end_date)
+df_gas_fee_stats = load_gas_fee_stats(start_date, end_date)
+# === Charts: Row 3 =====================================================================
+
+col1, col2 = st.columns(2)
+
+with col1:
+    fig_b1 = go.Figure()
+    # Stacked Bars
+    fig_stacked_fee_chain = px.bar(df_deploy_fee_stats_overtime, x="Date", y="Total Gas Fees", color="Deployed Chain", 
+                                title="Amount of Fees Paid Based on the Deployed Chain Over Time")
+    fig_stacked_fee_chain.update_layout(barmode="stack", yaxis_title="$USD", xaxis_title="", legend=dict(title=""))
+    st.plotly_chart(fig_stacked_fee_chain, use_container_width=True)
+
+with col2:
+    df_norm = df_deploy_fee_stats_overtime.copy()
+    df_norm['total_per_date'] = df_norm.groupby('Date')['Total Gas Fees'].transform('sum')
+    df_norm['normalized'] = df_norm['Total Gas Fees'] / df_norm['total_per_date']
+    fig_norm_stacked_fee_chain = px.bar(df_norm, x='Date', y='normalized', color='Deployed Chain', title="Share of Fees Paid Based on the Deployed Chain Over Time",
+                                     text=df_norm['Total Gas Fees'].astype(str))
+    fig_norm_stacked_fee_chain.update_layout(barmode='stack', xaxis_title="", yaxis_title="%", yaxis=dict(tickformat='%'), legend=dict(title=""))
+    fig_norm_stacked_fee_chain.update_traces(textposition='inside')
+    st.plotly_chart(fig_norm_stacked_fee_chain, use_container_width=True)
+
+# === KPIs: Row 4 ======================================================
+card_style = """
+    <div style="
+        background-color: #f9f9f9;
+        border: 1px solid #e0e0e0;
+        border-radius: 12px;
+        padding: 20px;
+        text-align: center;
+        box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
+        ">
+        <h4 style="margin: 0; font-size: 20px; color: #555;">{label}</h4>
+        <p style="margin: 5px 0 0; font-size: 20px; font-weight: bold; color: #000;">{value}</p>
+    </div>
+"""
+
+col1, col2, col3 = st.columns(3)
+with col1:
+    st.markdown(card_style.format(label="Avg Gas Fee", value=f"📊${df_gas_fee_stats["Avg Gas Fee"][0]:,}"), unsafe_allow_html=True)
+with col2:
+    st.markdown(card_style.format(label="Median Gas Fee", value=f"📋${df_gas_fee_stats["Median Gas Fee"][0]:,}"), unsafe_allow_html=True)
+with col3:
+    st.markdown(card_style.format(label="Max Gas Fee", value=f"📈${df_gas_fee_stats["Max Gas Fee"][0]:,}"), unsafe_allow_html=True)
+
 
 # --- Row 6 -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 @st.cache_data
@@ -547,6 +572,6 @@ order by 1 desc
 
 
 df_deploy_stats_by_chain = load_deploy_stats_by_chain(start_date, end_date)
-df_gas_fee_stats = load_gas_fee_stats(start_date, end_date)
+
 df_list_tokens = load_list_tokens(start_date, end_date)
 df_tracking_tokens = load_tracking_tokens(start_date, end_date)
