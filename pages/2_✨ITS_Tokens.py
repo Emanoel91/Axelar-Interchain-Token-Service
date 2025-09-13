@@ -7,6 +7,7 @@ from cryptography.hazmat.primitives import serialization
 from cryptography.hazmat.backends import default_backend
 import networkx as nx
 import time
+import requests
 
 # --- Page Config ------------------------------------------------------------------------------------------------------
 st.set_page_config(
