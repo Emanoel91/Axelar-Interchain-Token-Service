@@ -375,8 +375,7 @@ or data:approved:returnValues:contractAddress ilike '%axelar1aqcj54lzz0rk22gvqgc
 ) AND data:interchain_token_deployment_started:event='InterchainTokenDeploymentStarted'
 and created_at::date>='{start_str}' and created_at::date<='{end_str}')
 
-select date_trunc('{timeframe}',created_at) as "Date", round(avg(fee),3) as "Avg Gas Fee",
-round(median(fee),3) as "Median Gas Fee"
+select date_trunc('{timeframe}',created_at) as "Date", round(avg(fee),3) as "Avg Gas Fee", round(median(fee),3) as "Median Gas Fee"
 from table1
 group by 1
 order by 1
@@ -435,6 +434,23 @@ with col2:
 with col3:
     st.markdown(card_style.format(label="Max Gas Fee", value=f"📈${df_gas_fee_stats["Max Gas Fee"][0]:,}"), unsafe_allow_html=True)
 
+# === Charts: Row 5 ======================================================
+col1, col2 = st.columns(2)
+
+with col1:
+    fig_line_gas = px.line(df_deploy_fee_stats_overtime, x="Date", y="Avg Gas Fee", color="Deployed Chain", title="Avg Gas Fee by Chain Over Time")
+    fig_line_gas.update_layout(yaxis_title="$USD", xaxis_title="", legend=dict(title=""))
+    st.plotly_chart(fig_line_gas, use_container_width=True)
+
+with col2:
+    fig2 = go.Figure()
+    fig2.add_trace(go.Scatter(x=df_avg_median_fee_stats["Date"], y=df_avg_median_fee_stats["Avg Gas Fee"], name="Avg Gas Fee", mode="lines", 
+                              yaxis="y1", line=dict(color="#fa9550")))
+    fig2.add_trace(go.Scatter(x=df_avg_median_fee_stats["Date"], y=df_avg_median_fee_stats["Median Gas Fee"], name="Median Gas Fee", mode="lines", 
+                              yaxis="y2", line=dict(color="#858dff")))
+    fig2.update_layout(title="Average & Median Fee For Token Deployment", yaxis=dict(title="$USD"), yaxis2=dict(title="$USD", overlaying="y", side="right"), xaxis=dict(title=""),
+        barmode="group", legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5))
+    st.plotly_chart(fig2, use_container_width=True)
 
 # --- Row 6 -----------------------------------------------------------------------------------------------------------------------------------------------------------------
 @st.cache_data
