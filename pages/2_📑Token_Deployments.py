@@ -546,7 +546,7 @@ and created_at::date between '{start_str}' and '{end_str}')
 select * from tab1 union all 
 select * from tab2)
 
-select token_name, symbol, count(distinct lower(chain)) as chain_count 
+select token_name as "Token Name", symbol as "Token Symbol", count(distinct lower(chain)) as "Chains Count" 
 from tab3
 group by 1,2
 having count(distinct lower(chain))>1
@@ -598,11 +598,18 @@ order by 1 desc
     df = pd.read_sql(query, conn)
     return df
 
-# --- Load Data --------------------------------------------------------------------------------------------------------------------
-
-
-
-
-
+# === Load Data: Rows 7,8 ==============================================
 df_list_tokens = load_list_tokens(start_date, end_date)
 df_tracking_tokens = load_tracking_tokens(start_date, end_date)
+# === Tables 7,8 =======================================================
+st.subheader("📑List of ITS Tokens By Number of Registered Chains (Tokens on 2+ chains)")
+df_display_token_chain = df_list_tokens.copy()
+df_display_token_chain.index = df_display_token_chain.index + 1
+df_display_token_chain = df_display_token_chain.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
+st.dataframe(df_display_token_chain, use_container_width=True)
+
+st.subheader("🎯Tracking of Token Deployments")
+df_display = df_tracking_tokens.copy()
+df_display.index = df_display.index + 1
+df_display = df_display.applymap(lambda x: f"{x:,}" if isinstance(x, (int, float)) else x)
+st.dataframe(df_display, use_container_width=True)
