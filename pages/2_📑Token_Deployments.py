@@ -493,6 +493,21 @@ order by 2 desc
     df = pd.read_sql(query, conn)
     return df
 
+# === Load Data: Row 6 =======================================================================================
+df_deploy_stats_by_chain = load_deploy_stats_by_chain(start_date, end_date)
+# === Charts: Row 6 ==========================================================================================
+col1, col2 = st.columns(2)
+
+fig1 = px.pie(df_deploy_stats_by_chain, values="Number of Tokens", names="Deployed Chain", title="Number of Tokens Deployed By Chain")
+fig1.update_traces(textinfo="percent+label", textposition="inside", automargin=True)
+
+fig2 = px.pie(df_deploy_stats_by_chain, values="Total Gas Fees", names="Deployed Chain", title="Total Gas Fee By Deployed Chain")
+fig2.update_traces(textinfo="percent+label", textposition="inside", automargin=True)
+
+# display charts
+col1.plotly_chart(fig1, use_container_width=True)
+col2.plotly_chart(fig2, use_container_width=True)
+
 # --- Row 7 --------------------------------------------------------------------------------------------------------------------------------------------------------------------
 @st.cache_data
 def load_list_tokens(start_date, end_date):
@@ -587,7 +602,7 @@ order by 1 desc
 
 
 
-df_deploy_stats_by_chain = load_deploy_stats_by_chain(start_date, end_date)
+
 
 df_list_tokens = load_list_tokens(start_date, end_date)
 df_tracking_tokens = load_tracking_tokens(start_date, end_date)
