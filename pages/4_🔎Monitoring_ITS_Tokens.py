@@ -554,7 +554,7 @@ fig_donut_volume = px.pie(
 # --    color_discrete_map=color_scale
 )
 
-fig_donut_volume.update_traces(textposition='outside', textinfo='percent+label', pull=[0.05]*len(df_volume_distribution_total))
+fig_donut_volume.update_traces(textposition='inside', textinfo='percent', pull=[0.05]*len(df_volume_distribution_total))
 fig_donut_volume.update_layout(showlegend=True, legend=dict(orientation="v", y=0.5, x=1.1))
 
 col1, col2 = st.columns(2)
