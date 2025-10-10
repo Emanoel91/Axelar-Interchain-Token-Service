@@ -345,7 +345,7 @@ fig1.add_trace(go.Scatter(
     y=df_agg["transfers_count"],
     mode="lines",
     name="Total Transfers Count",
-    line=dict(color="black", width=3)
+    line=dict(color="black", width=2)
 ))
 
 fig1.update_layout(
@@ -378,7 +378,7 @@ fig2.add_trace(go.Scatter(
     y=df_agg["transfers_volume_native_token"],
     mode="lines",
     name="Total Transfers Volume",
-    line=dict(color="black", width=3)
+    line=dict(color="black", width=2)
 ))
 
 fig2.update_layout(
