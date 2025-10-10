@@ -194,7 +194,7 @@ if not df_agg.empty:
     ))
 
     fig.update_layout(
-        title="Interchain Transfers Over Time",
+        title=" ",
         xaxis=dict(title="Date"),
         yaxis=dict(title="Number of Transfers", side="left"),
         yaxis2=dict(title="Volume of Transfers ($USD)", overlaying="y", side="right"),
