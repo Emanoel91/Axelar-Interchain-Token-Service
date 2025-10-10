@@ -198,7 +198,7 @@ if not df_agg.empty:
         xaxis=dict(title="Date"),
         yaxis=dict(title="Number of Transfers", side="left"),
         yaxis2=dict(title="Volume of Transfers ($USD)", overlaying="y", side="right"),
-        legend=dict(x=0.01, y=0.99),
+        legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5),
         hovermode="x unified",
         template="plotly_white",
         height=520
