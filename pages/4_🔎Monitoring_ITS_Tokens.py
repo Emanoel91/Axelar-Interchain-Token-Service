@@ -430,7 +430,7 @@ fig4 = px.bar(
     y="share",
     color="path",
     title="Share of Each Route from the Total Volume of Transfers",
-    color_discrete_sequence=["#cd00fc", "#d9fd51"],
+# --    color_discrete_sequence=["#cd00fc", "#d9fd51"],
     labels={
         "date": "Date",
         "share": "% of Native Volume"
