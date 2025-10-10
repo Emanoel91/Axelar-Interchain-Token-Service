@@ -499,17 +499,7 @@ fig3 = px.bar(
         "senders_count": "Address count"
     }
 )
-fig3.update_layout(
-    barmode="stack",
-    legend=dict(
-        title_text="",        
-        orientation="h",
-        yanchor="bottom",
-        y=1.02,
-        xanchor="center",
-        x=0.5
-    )
-)
+fig3.update_layout(barmode="stack")
         
 df_norm = df_timeseries.copy()
 df_norm["total"] = df_norm.groupby("date")["transfers_volume_native_token"].transform("sum")
@@ -528,20 +518,7 @@ fig4 = px.bar(
         "share": "% of Native Volume"
     }
 )
-fig4.update_layout(
-    barmode="stack",
-    yaxis_tickformat=".0%",
-    legend=dict(
-        title_text="",        
-        orientation="h",
-        yanchor="bottom",
-        y=1.02,
-        xanchor="center",
-        x=0.5
-    )
-)
-
-    
+fig4.update_layout(barmode="stack", yaxis_tickformat=".0%")
 
 col1, col2 = st.columns(2)
 with col1:
