@@ -1,125 +1,170 @@
-import requests
-import pandas as pd
-import plotly.graph_objects as go
 import streamlit as st
+import pandas as pd
+import requests
+import plotly.graph_objects as go
 
-# --- تبدیل تاریخ انتخابی کاربر به یونیکس ثانیه (UTC) ---
-def to_unix_seconds(dt):
-    ts = pd.to_datetime(dt)
+# -------------------------
+# 1) ویجت‌ها (باید قبل از فراخوانی load_gmp_data باشند)
+# -------------------------
+col1, col2, col3, col4 = st.columns(4)
+
+with col1:
+    its_token = st.selectbox("Select ITS Token", [
+        "ALVA","ACP","AETX","AI","AIPO","AITECH","$WAI","ATH","BAVA","BCT","Boop","BSW","BTCB","BUNNI","CAI","CATE","CATBOY",
+        "CDFI","CFG","CHRP","CONK","DACKIE","DAI","DCB","DEAL","DOGE","EARTH","ELDA","END","ENSURE","ESE","FDUSD","FIG","FLOKI",
+        "FS","FUN","FX","G3","GQ","GRAIN","GRAM","GROK","HOKK","HYB","IMP","IMR","IMT","ITHACA","KATA","KIP","KLIMA","KLAUS",
+        "M-BTC","MEGALAND","MIRAI","MOLLARS","MOON","MSS","MSTR","MUNITY","MVX","NEIRO","NFTL","NUT","NUTS","OFF","OIK","OMKG",
+        "OXYZ","PELL","PSTAKE","PUNDIAI","QUACK","RBX","RDX","RECALL","RMRK","RSTK","SATOSHI","SOULS","SPECU","Speed","STABLE",
+        "TADA","TBH","TRIUMPH","TURBO","UNV","USDC.axl","USDFI","USDT","USDf","USDX","VOLS","WBTC","WETH","XAV","XDEFI","XRP",
+        "YBR","YUP","agETH.axl","axlUSDM","mBASIS","mBTC","mEDGE","mF-ONE","mMEV","mRe7YIELD","mTBILL","oBUNNI","oooOOO",
+        "sUSDX","sUSDf","sUSDz","wpFIL"
+    ])
+
+with col2:
+    timeframe = st.selectbox("Select Time Frame", ["month", "week", "day"])
+
+with col3:
+    start_date = st.date_input("Start Date", value=pd.to_datetime("2025-01-01").date())
+
+with col4:
+    end_date = st.date_input("End Date", value=pd.to_datetime("2026-01-01").date())
+
+# -------------------------
+# 2) توابع کمکی: تبدیل تاریخ به unixtime (UTC)، بارگذاری از API و تبدیل timestamp
+# -------------------------
+def to_unix_seconds_from_date(d, end_of_day=False):
+    """d می‌تواند date یا datetime باشد. اگر end_of_day True باشد، تا 23:59:59 آن روز را می‌گیرد."""
+    ts = pd.to_datetime(d)
+    if end_of_day:
+        ts = ts.normalize() + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
+    else:
+        ts = ts.normalize()
+    # نالایز به UTC (اگر timezone نداشته باشد)
     if ts.tzinfo is None:
         ts = ts.tz_localize('UTC')
     else:
         ts = ts.tz_convert('UTC')
     return int(ts.timestamp())
 
-# --- بارگذاری مقاوم از API و تبدیل timestamp ---
 @st.cache_data(ttl=300)
-def load_gmp_data(its_token, start_date, end_date):
-    from_unix = to_unix_seconds(start_date)
-    to_unix = to_unix_seconds(end_date)
+def load_gmp_data(symbol: str, start_date, end_date):
+    """خواندن داده از API با پارامترهای یونیکس ثانیه؛ برمی‌گرداند DataFrame با ستون‌های timestamp (datetime UTC)، num_txs، volume"""
+    from_unix = to_unix_seconds_from_date(start_date, end_of_day=False)
+    to_unix = to_unix_seconds_from_date(end_date, end_of_day=True)
 
-    url = f"https://api.axelarscan.io/gmp/GMPChart?symbol={its_token}&fromTime={from_unix}&toTime={to_unix}"
-    resp = requests.get(url, timeout=20)
+    url = "https://api.axelarscan.io/gmp/GMPChart"
+    params = {"symbol": symbol, "fromTime": from_unix, "toTime": to_unix}
+
+    resp = requests.get(url, params=params, timeout=20)
     resp.raise_for_status()
-    data = resp.json().get("data", [])
-    df = pd.DataFrame(data)
+    payload = resp.json()
+    data = payload.get("data", []) if isinstance(payload, dict) else []
 
+    df = pd.DataFrame(data)
     if df.empty:
         return df
 
-    # اطمینان از نوع صحیح ستون‌های عددی
+    # اطمینان از انواع عددی
     df['num_txs'] = pd.to_numeric(df.get('num_txs', 0), errors='coerce').fillna(0).astype(int)
-    df['volume'] = pd.to_numeric(df.get('volume', 0.0), errors='coerce').fillna(0.0)
+    df['volume'] = pd.to_numeric(df.get('volume', 0.0), errors='coerce').fillna(0.0).astype(float)
 
-    # تابع کمکی برای تبدیل timestamp (عدد یا رشته) با تشخیص واحد
+    # تشخیص واحد timestamp و تبدیل امن به datetime (utc)
     def parse_timestamp_col(col):
-        # تلاش اول: تبدیل به عدد (در صورت امکان)
         nums = pd.to_numeric(col, errors='coerce')
         if nums.notna().any():
             maxv = nums.max()
-            # heuristics برای تشخیص واحد
-            if maxv > 10**17:
+            # heuristics برای انتخاب unit
+            if maxv > 1e18:
                 unit = 'ns'
-            elif maxv > 10**14:
+            elif maxv > 1e15:
                 unit = 'us'
-            elif maxv > 10**11:
+            elif maxv > 1e12:
                 unit = 'ms'
-            elif maxv > 10**9:
+            elif maxv > 1e9:
                 unit = 's'
             else:
-                # کوچک‌تر از ~1e9 را هم به عنوان ثانیه در نظر می‌گیریم (fallback)
                 unit = 's'
-            dt = pd.to_datetime(nums.astype('Int64'), unit=unit, utc=True, errors='coerce')
-            # اگر تعداد زیادی NaT داشت، تلاش کنیم رشته‌ها رو مستقیماً پارس کنیم (ISO)
-            if dt.isna().sum() > len(dt) * 0.5:
-                dt2 = pd.to_datetime(col, utc=True, errors='coerce')
-                # جایگزینی مقادیر NaT
-                dt[dt.isna()] = dt2[dt.isna()]
-            return dt
+            # تبدیل اعدادی که non-null هستند
+            dt_series = pd.to_datetime(nums.dropna().astype('int64'), unit=unit, utc=True, errors='coerce')
+            # بازگرداندن به ایندکس اصلی (پر کردن NaT برای مقادیر Null)
+            full = pd.Series(pd.NaT, index=nums.index)
+            full.loc[nums.notna()] = dt_series.values
+            # اگر هنوز تعداد زیادی NaT وجود داشت، تلاش برای پارس رشته‌ها (ISO)
+            if full.isna().sum() > 0:
+                parsed_strings = pd.to_datetime(col, utc=True, errors='coerce')
+                full[full.isna()] = parsed_strings[full.isna()]
+            return full
         else:
-            # اگر اصلاً عددی نبود (مثلاً ISO strings)، مستقیم پارس می‌کنیم
+            # همه رشته‌اند یا همه نامعتبر -> مستقیم parse
             return pd.to_datetime(col, utc=True, errors='coerce')
 
-    df['timestamp'] = parse_timestamp_col(df['timestamp'])
-    # حذف ردیف‌هایی که تاریخ معتبر ندارند (تا از خطا جلوگیری شود)
-    df = df.dropna(subset=['timestamp'])
-    df = df.sort_values('timestamp').reset_index(drop=True)
-
+    df['timestamp'] = parse_timestamp_col(df.get('timestamp'))
+    # حذف ردیف‌هایی که timestamp معتبر ندارند
+    df = df.dropna(subset=['timestamp']).sort_values('timestamp').reset_index(drop=True)
     return df
 
-# --- تجمیع بر اساس timeframe (روز/هفته/ماه) با resample (UTC-indexed) ---
 def aggregate_by_timeframe(df, timeframe):
     if df.empty:
         return df
-    df = df.copy()
-    df.set_index('timestamp', inplace=True)
-
+    d = df.set_index('timestamp')
     if timeframe == "day":
-        res = df.resample('D').sum()
+        res = d.resample('D').agg({'num_txs': 'sum', 'volume': 'sum'})
     elif timeframe == "week":
-        # هفته از Monday شروع می‌شود؛ می‌توانید 'W-SUN' را انتخاب کنید اگر می‌خواهید یکشنبه
-        res = df.resample('W-MON').sum()
+        # هفته از Monday شروع می‌شود؛ در صورت نیاز تغییر دهید
+        res = d.resample('W-MON').agg({'num_txs': 'sum', 'volume': 'sum'})
     elif timeframe == "month":
-        res = df.resample('M').sum()
+        res = d.resample('M').agg({'num_txs': 'sum', 'volume': 'sum'})
     else:
-        res = df.resample('D').sum()
-
+        res = d.resample('D').agg({'num_txs': 'sum', 'volume': 'sum'})
     res = res.reset_index()
-    # مطمئن شویم انواع درست هستند
     res['num_txs'] = res['num_txs'].fillna(0).astype(int)
-    res['volume'] = res['volume'].fillna(0.0)
+    res['volume'] = res['volume'].fillna(0.0).astype(float)
     return res
 
-# --- مثال استفاده و رسم (قرار دهید در همان جای قبلی شما) ---
-df = load_gmp_data(its_token, start_date, end_date)
+# -------------------------
+# 3) فراخوانی با هندل خطا و نمایش داده / KPI و نمودار
+# -------------------------
+try:
+    df = load_gmp_data(its_token, start_date, end_date)
+except Exception as e:
+    st.error(f"Failed to load API data: {e}")
+    df = pd.DataFrame(columns=["timestamp", "num_txs", "volume"])
+
+# برای دیباگ: داده خام را در یک expander نمایش بده
+with st.expander("Show raw API sample (debug)"):
+    st.write(df.head(10))
+
 df_agg = aggregate_by_timeframe(df, timeframe)
 
-# KPIها
+# محاسبه KPI ها از دادهٔ API
 total_num_txs = int(df_agg['num_txs'].sum()) if not df_agg.empty else 0
 total_volume = float(df_agg['volume'].sum()) if not df_agg.empty else 0.0
 
 k1, k2, k3, k4 = st.columns(4)
 k1.metric("Volume of Transfers (Native Token)", "—")
-k2.metric("Volume of Transfers ($USD)", f"${int(total_volume):,}")
+k2.metric("Volume of Transfers ($USD)", f"${total_volume:,.0f}")
 k3.metric("Number of Transfers", f"{total_num_txs:,}")
 k4.metric("Number of Senders", "—")
 
-# رسم نمودار ترکیبی bar-line
+# رسم نمودار ترکیبی (bar = num_txs, line = volume)
 if not df_agg.empty:
     fig = go.Figure()
     fig.add_trace(go.Bar(
         x=df_agg['timestamp'],
         y=df_agg['num_txs'],
         name="Number of Transfers",
-        yaxis="y1"
+        yaxis="y1",
+        opacity=0.8
     ))
     fig.add_trace(go.Scatter(
         x=df_agg['timestamp'],
         y=df_agg['volume'],
         name="Volume of Transfers ($USD)",
         yaxis="y2",
-        mode="lines+markers"
+        mode="lines+markers",
+        line=dict(width=2)
     ))
+
     fig.update_layout(
         title="Interchain Transfers Over Time",
         xaxis=dict(title="Date"),
@@ -130,6 +175,7 @@ if not df_agg.empty:
         template="plotly_white",
         height=520
     )
+
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("No data found for the selected filters.")
