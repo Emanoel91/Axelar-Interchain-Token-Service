@@ -315,8 +315,9 @@ st.markdown("## 🚀 ITS Token Transfer Overview")
 
 k1, k2, k3, k4 = st.columns(4)
 
-volume_b = transfer_metrics['transfers_volume_native_token'] / 1_000_000_000  
-k1.metric("Volume of Transfers", f"{volume_b:.2f} B")
+# -- volume_b = transfer_metrics['transfers_volume_native_token'] / 1_000_000_000  
+# -- k1.metric("Volume of Transfers", f"{volume_b:.2f} B")
+k1.metric("Volume of Transfers", f"{int(transfer_metrics['transfers_volume_native_token']):,}")
 k2.metric("Volume of Transfers ($USD)", f"${int(transfer_metrics['transfers_volume_usd']):,}")
 k3.metric("Number of Transfers", f"{int(transfer_metrics['transfers_count']):,}")
 k4.metric("Number of Senders", f"{int(transfer_metrics['senders_count']):,}")
