@@ -95,8 +95,8 @@ def to_unix_seconds(dt):
 # --- بارگذاری داده از API ---
 @st.cache_data
 def load_gmp_data(its_token, start_date, end_date):
-    from_unix = to_unix_time(start_date)
-    to_unix = to_unix_time(end_date)
+    from_unix = to_unix_seconds(start_date)
+    to_unix = to_unix_seconds(end_date)
 
     url = f"https://api.axelarscan.io/gmp/GMPChart?symbol={its_token}&fromTime={from_unix}&toTime={to_unix}"
     resp = requests.get(url)
