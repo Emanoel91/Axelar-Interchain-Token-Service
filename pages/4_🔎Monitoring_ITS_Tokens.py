@@ -483,7 +483,7 @@ fig1.update_layout(
     barmode="stack",
     title="Number of Interchain Transfers By Path Over Time",
     xaxis_title="Date",
-    yaxis_title="Txns Count",
+    yaxis_title="Txns Count"
     
 )
 
@@ -510,14 +510,7 @@ fig2.update_layout(
     barmode="stack",
     title="Volume of Interchain Transfers By Path Over Time",
     xaxis_title="Date",
-    yaxis_title="$Token",
-    legend=dict(
-        orientation="h",       
-        yanchor="bottom",      
-        y=1.02,                
-        xanchor="center",      
-        x=0.5                  
-    )
+    yaxis_title="$Token"
 )
 
 fig3 = px.bar(
