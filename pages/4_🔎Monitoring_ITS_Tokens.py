@@ -69,7 +69,7 @@ with col1:
                                                  "MIRAI","MOLLARS","MOON","MSS","MSTR","MUNITY","MVX","NEIRO","NFTL","NUT","NUTS","OFF","OIK","OMKG","OXYZ","PELL","PSTAKE",
                                                  "PUNDIAI","QUACK","RBX","RDX","RECALL","RMRK","RSTK","SATOSHI","SOULS","SPECU","Speed","STABLE","TADA","TBH","TRIUMPH","TURBO",
                                                  "UNV","USDC.axl","USDFI","USDT","USDf","USDX","VOLS","WBTC","WETH","XAV","XDEFI","XRP","YBR","YUP","agETH.axl","axlUSDM",
-                                                 "mBASIS","mBTC","mEDGE","mF-ONE","mMEV","mRe7YIELD","mTBILL","oBUNNI","oooOOO","sUSDX","sUSDf","sUSDz","wpFIL"])
+                                                 "mBASIS","mBTC","mEDGE","mF-ONE","mMEV","mRe7YIELD","mTBILL","mXRP","oBUNNI","oooOOO","sUSDX","sUSDf","sUSDz","wpFIL"])
   
 with col2:
     timeframe = st.selectbox("Select Time Frame", ["month", "week", "day"])
