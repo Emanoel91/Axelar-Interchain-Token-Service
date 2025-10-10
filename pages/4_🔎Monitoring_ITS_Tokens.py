@@ -570,7 +570,7 @@ with col2:
 transfer_table.index = transfer_table.index + 1
 
 # --- Section Header ---
-st.markdown("### 🔎ATH Interchain Transfers Tracker (Recent Transactions Within the Default Time Frame)")
+st.markdown("### 🔎Interchain Transfers Tracker (Recent Txns Within the Default Time Frame)")
 
 # --- Show Table ---
 st.dataframe(transfer_table, use_container_width=True)
