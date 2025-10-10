@@ -27,7 +27,6 @@ st.markdown(
 )
 
 st.info("📊Charts initially display data for a default time range. Select a custom range to view results for your desired period.")
-
 st.info("⏳On-chain data retrieval may take a few moments. Please wait while the results load.")
 
 # --- Snowflake Connection ----------------------------------------------------------------------------------------
@@ -82,9 +81,9 @@ with col4:
     end_date = st.date_input("End Date", value=pd.to_datetime("2026-01-01"))
 
 # --- Query Functions ---------------------------------------------------------------------------------------
-# =============================================================================================================================================================================
+# ===========================================================================================================
 def to_unix_seconds_from_date(d, end_of_day=False):
-    """d می‌تواند date یا datetime باشد. اگر end_of_day True باشد، تا 23:59:59 آن روز را می‌گیرد."""
+
     ts = pd.to_datetime(d)
     if end_of_day:
         ts = ts.normalize() + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
