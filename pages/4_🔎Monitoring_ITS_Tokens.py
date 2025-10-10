@@ -484,13 +484,7 @@ fig1.update_layout(
     title="Number of Interchain Transfers By Path Over Time",
     xaxis_title="Date",
     yaxis_title="Txns Count",
-    legend=dict(
-        orientation="h",      
-        yanchor="bottom",      
-        y=1.02,                
-        xanchor="center",     
-        x=0.5                  
-    )
+    
 )
 
 fig2 = go.Figure()
