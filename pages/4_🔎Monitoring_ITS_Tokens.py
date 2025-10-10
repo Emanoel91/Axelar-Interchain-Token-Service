@@ -90,7 +90,7 @@ def to_unix_seconds_from_date(d, end_of_day=False):
         ts = ts.normalize() + pd.Timedelta(days=1) - pd.Timedelta(seconds=1)
     else:
         ts = ts.normalize()
-    # نالایز به UTC (اگر timezone نداشته باشد)
+
     if ts.tzinfo is None:
         ts = ts.tz_localize('UTC')
     else:
@@ -190,12 +190,6 @@ df_agg = aggregate_by_timeframe(df, timeframe)
 # محاسبه KPI ها از دادهٔ API
 total_num_txs = int(df_agg['num_txs'].sum()) if not df_agg.empty else 0
 total_volume = float(df_agg['volume'].sum()) if not df_agg.empty else 0.0
-
-k1, k2, k3, k4 = st.columns(4)
-k1.metric("Volume of Transfers (Native Token)", "—")
-k2.metric("Volume of Transfers ($USD)", f"${total_volume:,.0f}")
-k3.metric("Number of Transfers", f"{total_num_txs:,}")
-k4.metric("Number of Senders", "—")
 
 # رسم نمودار ترکیبی (bar = num_txs, line = volume)
 if not df_agg.empty:
@@ -470,8 +464,10 @@ st.markdown("## 🚀 ITS Token Transfer Overview")
 k1, k2, k3, k4 = st.columns(4)
 
 k1.metric("Volume of Transfers", f"{int(transfer_metrics['transfers_volume_native_token']):,}")
-k2.metric("Volume of Transfers ($USD)", f"${int(transfer_metrics['transfers_volume_usd']):,}")
-k3.metric("Number of Transfers", f"{int(transfer_metrics['transfers_count']):,}")
+k2.metric("Volume of Transfers ($USD)", f"${total_volume:,.0f}")
+k3.metric("Number of Transfers", f"{total_num_txs:,}")
+# -- k2.metric("Volume of Transfers ($USD)", f"${int(transfer_metrics['transfers_volume_usd']):,}")
+# -- k3.metric("Number of Transfers", f"{int(transfer_metrics['transfers_count']):,}")
 k4.metric("Number of Senders", f"{int(transfer_metrics['senders_count']):,}")
 
 # --- Row 2,3 -------------------------------------------
