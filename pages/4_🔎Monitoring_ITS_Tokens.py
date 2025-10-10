@@ -59,7 +59,7 @@ conn = snowflake.connector.connect(
 )
 
 # --- Time Frame & Period Selection ---
-col1, col2, col3, col4 = st.columns(3)
+col1, col2, col3, col4 = st.columns(4)
 
 with col1:
     its_token = st.selectbox("Select ITS Token", ["ALVA","ACP","AETX","AI","AIPO","AITECH","$WAI","ATH","BAVA","BCT","Boop","BSW","BTCB","BUNNI","CAI","CATE","CATBOY","CDFI",
