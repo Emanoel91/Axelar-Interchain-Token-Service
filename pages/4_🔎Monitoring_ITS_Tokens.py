@@ -163,14 +163,7 @@ def aggregate_by_timeframe(df, timeframe):
     return res
 
 # -------------------------
-try:
-    df = load_gmp_data(its_token, start_date, end_date)
-except Exception as e:
-    st.error(f"Failed to load API data: {e}")
-    df = pd.DataFrame(columns=["timestamp", "num_txs", "volume"])
 
-with st.expander("Show raw API sample (debug)"):
-    st.write(df.head(10))
 
 df_agg = aggregate_by_timeframe(df, timeframe)
 
