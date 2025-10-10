@@ -193,16 +193,39 @@ if not df_agg.empty:
         line=dict(width=2)
     ))
 
-    fig.update_layout(
-        title="📊 ITS Token Transfer Over Time",
-        xaxis=dict(title="Date"),
-        yaxis=dict(title="Number of Transfers", side="left"),
-        yaxis2=dict(title="Volume of Transfers ($USD)", overlaying="y", side="right"),
-        legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5),
-        hovermode="x unified",
-        template="plotly_white",
-        height=520
+    # تعیین فرمت محور x بر اساس نوع بازه زمانی
+if timeframe == "month":
+    xaxis_config = dict(
+        title="Month",
+        tickformat="%b\n%Y",   # نمایش نام ماه و سال به صورت "Jan\n2025"
+        dtick="M1",            # فاصله‌ی یک‌ماهه بین تیک‌ها
+        ticklabelmode="period",# قرار دادن برچسب زیر ستون همان ماه
+        tickangle=0,
     )
+elif timeframe == "week":
+    xaxis_config = dict(
+        title="Week",
+        tickformat="%d %b",
+        dtick="W1",
+        ticklabelmode="period"
+    )
+else:  # روزانه
+    xaxis_config = dict(
+        title="Date",
+        tickformat="%d %b",
+        dtick="D1"
+    )
+
+fig.update_layout(
+    title="📊 ITS Token Transfer Over Time",
+    xaxis=xaxis_config,
+    yaxis=dict(title="Number of Transfers", side="left"),
+    yaxis2=dict(title="Volume of Transfers ($USD)", overlaying="y", side="right"),
+    legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5),
+    hovermode="x unified",
+    template="plotly_white",
+    height=520
+)
 
     st.plotly_chart(fig, use_container_width=True)
 else:
@@ -464,28 +487,10 @@ fig1 = go.Figure()
 
 for path in df_timeseries["path"].unique():
     data = df_timeseries[df_timeseries["path"] == path]
-    fig1.add_trace(go.Bar(
-        x=data["date"],
-        y=data["transfers_count"],
-        name=path,
-# --        marker_color=custom_colors.get(path.lower(), None)
-    ))
+    fig1.add_trace(go.Bar(x=data["date"], y=data["transfers_count"], name=path))
 
-fig1.add_trace(go.Scatter(
-    x=df_agg["date"],
-    y=df_agg["transfers_count"],
-    mode="lines",
-    name="Total Transfers Count",
-    line=dict(color="black", width=2)
-))
-
-fig1.update_layout(
-    barmode="stack",
-    title="Number of Interchain Transfers By Path Over Time",
-    xaxis_title="Date",
-    yaxis_title="Txns Count"
-    
-)
+fig1.add_trace(go.Scatter(x=df_agg["date"],y=df_agg["transfers_count"], mode="lines", name="Total Transfers Count", line=dict(color="black", width=2)))
+fig1.update_layout(barmode="stack", title="Number of Interchain Transfers By Path Over Time", xaxis_title="Date", yaxis_title="Txns Count")
 
 fig2 = go.Figure()
 
