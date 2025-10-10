@@ -82,49 +82,6 @@ with col4:
     end_date = st.date_input("End Date", value=pd.to_datetime("2026-01-01"))
 
 # --- Query Functions ---------------------------------------------------------------------------------------
-# --- Row API ---
-# --- تبدیل تاریخ انتخابی کاربر به یونیکس ثانیه (UTC) ---
-def to_unix_seconds(dt):
-    ts = pd.to_datetime(dt)
-    if ts.tzinfo is None:
-        ts = ts.tz_localize('UTC')
-    else:
-        ts = ts.tz_convert('UTC')
-    return int(ts.timestamp())
-
-# --- بارگذاری داده از API ---
-@st.cache_data
-def load_gmp_data(its_token, start_date, end_date):
-    from_unix = to_unix_seconds(start_date)
-    to_unix = to_unix_seconds(end_date)
-
-    url = f"https://api.axelarscan.io/gmp/GMPChart?symbol={its_token}&fromTime={from_unix}&toTime={to_unix}"
-    resp = requests.get(url)
-    data = resp.json().get("data", [])
-    if not data:
-        return pd.DataFrame(columns=["timestamp", "num_txs", "volume"])
-
-    df = pd.DataFrame(data)
-    df["timestamp"] = pd.to_datetime(df["timestamp"], unit="s")
-    df = df.sort_values("timestamp")
-    return df
-
-# --- تابع تجمیع داده‌ها بر اساس تایم‌فریم ---
-def aggregate_by_timeframe(df, timeframe):
-    if df.empty:
-        return df
-    if timeframe == "day":
-        return df
-    elif timeframe == "week":
-        df["week"] = df["timestamp"].dt.to_period("W").dt.start_time
-        grouped = df.groupby("week", as_index=False).agg({"num_txs": "sum", "volume": "sum"})
-        grouped.rename(columns={"week": "timestamp"}, inplace=True)
-        return grouped
-    elif timeframe == "month":
-        df["month"] = df["timestamp"].dt.to_period("M").dt.start_time
-        grouped = df.groupby("month", as_index=False).agg({"num_txs": "sum", "volume": "sum"})
-        grouped.rename(columns={"month": "timestamp"}, inplace=True)
-        return grouped
         
 # --- Row 1: Total Amounts Staked, Unstaked, and Net Staked ---
 
@@ -355,8 +312,7 @@ df_volume_distribution_total = load_transfer_volume_distribution_total(start_dat
 transfer_table = load_transfer_table(start_date, end_date, its_token)
 weekly_data = load_weekly_breakdown(start_date, end_date, its_token)
 # --- API Data ---
-df = load_gmp_data(its_token, start_date, end_date)
-df_agg = aggregate_by_timeframe(df, timeframe)
+
 # ------------------------------------------------------------------------------------------------------
 
 # --- Row 1: Metrics ---
@@ -367,54 +323,10 @@ total_volume = df_agg["volume"].sum() if not df_agg.empty else 0
 
 k1, k2, k3, k4 = st.columns(4)
 
-# -- volume_b = transfer_metrics['transfers_volume_native_token'] / 1_000_000_000  
-# -- k1.metric("Volume of Transfers", f"{volume_b:.2f} B")
 k1.metric("Volume of Transfers", f"{int(transfer_metrics['transfers_volume_native_token']):,}")
-# -- k2.metric("Volume of Transfers ($USD)", f"${int(transfer_metrics['transfers_volume_usd']):,}")
-# -- k3.metric("Number of Transfers", f"{int(transfer_metrics['transfers_count']):,}")
-k2.metric("Volume of Transfers ($USD)", f"${int(total_volume):,}")
-k3.metric("Number of Transfers", f"{int(total_num_txs):,}")
+k2.metric("Volume of Transfers ($USD)", f"${int(transfer_metrics['transfers_volume_usd']):,}")
+k3.metric("Number of Transfers", f"{int(transfer_metrics['transfers_count']):,}")
 k4.metric("Number of Senders", f"{int(transfer_metrics['senders_count']):,}")
-
-# ------------------------------------------------------------------------------------------------------------
-
-if not df_agg.empty:
-    fig = go.Figure()
-
-    # Bar chart: Number of Transfers
-    fig.add_trace(go.Bar(
-        x=df_agg["timestamp"],
-        y=df_agg["num_txs"],
-        name="Number of Transfers",
-        yaxis="y1",
-        marker_color="rgba(55, 83, 109, 0.7)"
-    ))
-
-    # Line chart: Volume of Transfers
-    fig.add_trace(go.Scatter(
-        x=df_agg["timestamp"],
-        y=df_agg["volume"],
-        name="Volume of Transfers ($USD)",
-        yaxis="y2",
-        mode="lines+markers",
-        line=dict(width=2)
-    ))
-
-    fig.update_layout(
-        title="Interchain Transfers Over Time",
-        xaxis=dict(title="Date"),
-        yaxis=dict(title="Number of Transfers", side="left", showgrid=False),
-        yaxis2=dict(title="Volume of Transfers ($USD)", overlaying="y", side="right"),
-        legend=dict(x=0.01, y=0.99),
-        barmode="group",
-        hovermode="x unified",
-        template="plotly_white",
-        height=500,
-    )
-
-    st.plotly_chart(fig, use_container_width=True)
-else:
-    st.warning("No data found for the selected filters.")
 
 # --- Row 2,3 -------------------------------------------
 st.markdown("### 📊 ITS Token Transfer Over Time")
