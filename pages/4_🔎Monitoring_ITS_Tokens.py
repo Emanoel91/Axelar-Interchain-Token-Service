@@ -169,9 +169,6 @@ except Exception as e:
     st.error(f"Failed to load API data: {e}")
     df = pd.DataFrame(columns=["timestamp", "num_txs", "volume"])
 
-with st.expander("Show raw API sample (debug)"):
-
-
 df_agg = aggregate_by_timeframe(df, timeframe)
 
 total_num_txs = int(df_agg['num_txs'].sum()) if not df_agg.empty else 0
