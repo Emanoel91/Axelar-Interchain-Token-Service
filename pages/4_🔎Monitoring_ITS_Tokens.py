@@ -82,6 +82,7 @@ with col4:
 
 # --- Query Functions ---------------------------------------------------------------------------------------
 # ===========================================================================================================
+st.markdown("### 📊 ITS Token Transfer Over Time")
 def to_unix_seconds_from_date(d, end_of_day=False):
 
     ts = pd.to_datetime(d)
@@ -453,7 +454,7 @@ k3.metric("Number of Transfers", f"{total_num_txs:,}")
 k4.metric("Number of Senders", f"{int(transfer_metrics['senders_count']):,}")
 
 # --- Row 2,3 -------------------------------------------
-st.markdown("### 📊 ITS Token Transfer Over Time")
+
 df_agg = df_timeseries.groupby("date").agg({
     "transfers_count": "sum",
     "transfers_volume_native_token": "sum"
