@@ -98,7 +98,7 @@ def to_unix_seconds_from_date(d, end_of_day=False):
 
 @st.cache_data(ttl=300)
 def load_gmp_data(symbol: str, start_date, end_date):
-    """خواندن داده از API با پارامترهای یونیکس ثانیه؛ برمی‌گرداند DataFrame با ستون‌های timestamp (datetime UTC)، num_txs، volume"""
+
     from_unix = to_unix_seconds_from_date(start_date, end_of_day=False)
     to_unix = to_unix_seconds_from_date(end_date, end_of_day=True)
 
@@ -114,16 +114,13 @@ def load_gmp_data(symbol: str, start_date, end_date):
     if df.empty:
         return df
 
-    # اطمینان از انواع عددی
     df['num_txs'] = pd.to_numeric(df.get('num_txs', 0), errors='coerce').fillna(0).astype(int)
     df['volume'] = pd.to_numeric(df.get('volume', 0.0), errors='coerce').fillna(0.0).astype(float)
 
-    # تشخیص واحد timestamp و تبدیل امن به datetime (utc)
     def parse_timestamp_col(col):
         nums = pd.to_numeric(col, errors='coerce')
         if nums.notna().any():
             maxv = nums.max()
-            # heuristics برای انتخاب unit
             if maxv > 1e18:
                 unit = 'ns'
             elif maxv > 1e15:
@@ -134,22 +131,17 @@ def load_gmp_data(symbol: str, start_date, end_date):
                 unit = 's'
             else:
                 unit = 's'
-            # تبدیل اعدادی که non-null هستند
             dt_series = pd.to_datetime(nums.dropna().astype('int64'), unit=unit, utc=True, errors='coerce')
-            # بازگرداندن به ایندکس اصلی (پر کردن NaT برای مقادیر Null)
             full = pd.Series(pd.NaT, index=nums.index)
             full.loc[nums.notna()] = dt_series.values
-            # اگر هنوز تعداد زیادی NaT وجود داشت، تلاش برای پارس رشته‌ها (ISO)
             if full.isna().sum() > 0:
                 parsed_strings = pd.to_datetime(col, utc=True, errors='coerce')
                 full[full.isna()] = parsed_strings[full.isna()]
             return full
         else:
-            # همه رشته‌اند یا همه نامعتبر -> مستقیم parse
             return pd.to_datetime(col, utc=True, errors='coerce')
 
     df['timestamp'] = parse_timestamp_col(df.get('timestamp'))
-    # حذف ردیف‌هایی که timestamp معتبر ندارند
     df = df.dropna(subset=['timestamp']).sort_values('timestamp').reset_index(drop=True)
     return df
 
@@ -160,7 +152,6 @@ def aggregate_by_timeframe(df, timeframe):
     if timeframe == "day":
         res = d.resample('D').agg({'num_txs': 'sum', 'volume': 'sum'})
     elif timeframe == "week":
-        # هفته از Monday شروع می‌شود؛ در صورت نیاز تغییر دهید
         res = d.resample('W-MON').agg({'num_txs': 'sum', 'volume': 'sum'})
     elif timeframe == "month":
         res = d.resample('M').agg({'num_txs': 'sum', 'volume': 'sum'})
@@ -172,25 +163,20 @@ def aggregate_by_timeframe(df, timeframe):
     return res
 
 # -------------------------
-# 3) فراخوانی با هندل خطا و نمایش داده / KPI و نمودار
-# -------------------------
 try:
     df = load_gmp_data(its_token, start_date, end_date)
 except Exception as e:
     st.error(f"Failed to load API data: {e}")
     df = pd.DataFrame(columns=["timestamp", "num_txs", "volume"])
 
-# برای دیباگ: داده خام را در یک expander نمایش بده
 with st.expander("Show raw API sample (debug)"):
     st.write(df.head(10))
 
 df_agg = aggregate_by_timeframe(df, timeframe)
 
-# محاسبه KPI ها از دادهٔ API
 total_num_txs = int(df_agg['num_txs'].sum()) if not df_agg.empty else 0
 total_volume = float(df_agg['volume'].sum()) if not df_agg.empty else 0.0
 
-# رسم نمودار ترکیبی (bar = num_txs, line = volume)
 if not df_agg.empty:
     fig = go.Figure()
     fig.add_trace(go.Bar(
@@ -223,7 +209,7 @@ if not df_agg.empty:
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("No data found for the selected filters.")
-# =============================================================================================================================================================================
+# ======================================================================================================================
         
 # --- Row 1: Total Amounts Staked, Unstaked, and Net Staked ---
 
