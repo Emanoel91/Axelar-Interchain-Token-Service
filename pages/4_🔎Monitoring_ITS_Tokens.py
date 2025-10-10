@@ -436,37 +436,12 @@ weekly_data = load_weekly_breakdown(start_date, end_date, its_token)
 # --- Row 1: Metrics ---
 st.markdown("## 🚀 ITS Token Transfer Overview")
 
-card_style = """
-    <div style="
-        background-color: #f9f9f9;
-        border: 1px solid #e0e0e0;
-        border-radius: 12px;
-        padding: 20px;
-        text-align: center;
-        box-shadow: 2px 2px 10px rgba(0,0,0,0.05);
-        ">
-        <h4 style="margin: 0; font-size: 20px; color: #555;">{label}</h4>
-        <p style="margin: 5px 0 0; font-size: 20px; font-weight: bold; color: #000;">{value}</p>
-    </div>
-"""
+k1, k2, k3, k4 = st.columns(4) 
 
-# محاسبات KPIها
-volume_native = int(transfer_metrics['transfers_volume_native_token'])
-volume_usd = total_volume
-num_txs = total_num_txs
-num_senders = int(transfer_metrics['senders_count'])
-
-col1, col2, col3, col4 = st.columns(4)
-
-with col1:
-    st.markdown(card_style.format(label="💸 Volume of Transfers (Native Token)", value=f"{volume_native:,}"), unsafe_allow_html=True)
-with col2:
-    st.markdown(card_style.format(label="💰 Volume of Transfers ($USD)", value=f"${volume_usd:,.0f}"), unsafe_allow_html=True)
-with col3:
-    st.markdown(card_style.format(label="🚀 Number of Transfers", value=f"{num_txs:,}"), unsafe_allow_html=True)
-with col4:
-    st.markdown(card_style.format(label="👥 Number of Senders", value=f"{num_senders:,}"), unsafe_allow_html=True)
-st.markdown("<br>", unsafe_allow_html=True)
+k1.metric("Volume of Transfers", f"{int(transfer_metrics['transfers_volume_native_token']):,}") 
+k2.metric("Volume of Transfers ($USD)", f"${total_volume:,.0f}") 
+k3.metric("Number of Transfers", f"{total_num_txs:,}") 
+k4.metric("Number of Senders", f"{int(transfer_metrics['senders_count']):,}")
 
 
 # --- Row 2,3 -------------------------------------------
