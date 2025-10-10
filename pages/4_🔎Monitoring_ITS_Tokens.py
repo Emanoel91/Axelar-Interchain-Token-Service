@@ -83,9 +83,14 @@ with col4:
 
 # --- Query Functions ---------------------------------------------------------------------------------------
 # --- Row API ---
-# --- تبدیل تاریخ به UNIX ---
-def to_unix_time(dt):
-    return int(time.mktime(pd.to_datetime(dt).timetuple()))
+# --- تبدیل تاریخ انتخابی کاربر به یونیکس ثانیه (UTC) ---
+def to_unix_seconds(dt):
+    ts = pd.to_datetime(dt)
+    if ts.tzinfo is None:
+        ts = ts.tz_localize('UTC')
+    else:
+        ts = ts.tz_convert('UTC')
+    return int(ts.timestamp())
 
 # --- بارگذاری داده از API ---
 @st.cache_data
