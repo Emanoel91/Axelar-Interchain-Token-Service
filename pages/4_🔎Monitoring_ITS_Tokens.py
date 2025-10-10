@@ -318,9 +318,6 @@ weekly_data = load_weekly_breakdown(start_date, end_date, its_token)
 # --- Row 1: Metrics ---
 st.markdown("## 🚀 ITS Token Transfer Overview")
 
-total_num_txs = df_agg["num_txs"].sum() if not df_agg.empty else 0
-total_volume = df_agg["volume"].sum() if not df_agg.empty else 0
-
 k1, k2, k3, k4 = st.columns(4)
 
 k1.metric("Volume of Transfers", f"{int(transfer_metrics['transfers_volume_native_token']):,}")
