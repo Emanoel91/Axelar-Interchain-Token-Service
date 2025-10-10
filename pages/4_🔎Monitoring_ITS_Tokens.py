@@ -82,7 +82,7 @@ with col4:
 
 # --- Query Functions ---------------------------------------------------------------------------------------
 # ===========================================================================================================
-st.markdown("### 📊 ITS Token Transfer Over Time")
+
 def to_unix_seconds_from_date(d, end_of_day=False):
 
     ts = pd.to_datetime(d)
@@ -194,7 +194,7 @@ if not df_agg.empty:
     ))
 
     fig.update_layout(
-        title=" ",
+        title="📊 ITS Token Transfer Over Time",
         xaxis=dict(title="Date"),
         yaxis=dict(title="Number of Transfers", side="left"),
         yaxis2=dict(title="Volume of Transfers ($USD)", overlaying="y", side="right"),
