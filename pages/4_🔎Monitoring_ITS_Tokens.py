@@ -193,40 +193,9 @@ if not df_agg.empty:
         line=dict(width=2)
     ))
 
-    # تعیین فرمت محور x بر اساس نوع بازه زمانی
-if timeframe == "month":
-    xaxis_config = dict(
-        title="Month",
-        tickformat="%b\n%Y",   # نمایش نام ماه و سال به صورت "Jan\n2025"
-        dtick="M1",            # فاصله‌ی یک‌ماهه بین تیک‌ها
-        ticklabelmode="period",# قرار دادن برچسب زیر ستون همان ماه
-        tickangle=0,
-    )
-elif timeframe == "week":
-    xaxis_config = dict(
-        title="Week",
-        tickformat="%d %b",
-        dtick="W1",
-        ticklabelmode="period"
-    )
-else:  # روزانه
-    xaxis_config = dict(
-        title="Date",
-        tickformat="%d %b",
-        dtick="D1"
-    )
-
-fig.update_layout(
-    title="📊 ITS Token Transfer Over Time",
-    xaxis=xaxis_config,
-    yaxis=dict(title="Number of Transfers", side="left"),
-    yaxis2=dict(title="Volume of Transfers ($USD)", overlaying="y", side="right"),
-    legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5),
-    hovermode="x unified",
-    template="plotly_white",
-    height=520
-)
-
+    fig.update_layout(title="📊 ITS Token Transfer Over Time", xaxis=dict(title="Date"), yaxis=dict(title="Number of Transfers", side="left"),
+                      yaxis2=dict(title="Volume of Transfers ($USD)", overlaying="y", side="right"), legend=dict(orientation="h", yanchor="bottom", y=1.05, xanchor="center", x=0.5),
+                      hovermode="x unified", template="plotly_white", height=520)
     st.plotly_chart(fig, use_container_width=True)
 else:
     st.warning("No data found for the selected filters.")
