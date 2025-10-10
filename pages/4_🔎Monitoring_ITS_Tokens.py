@@ -151,13 +151,17 @@ def aggregate_by_timeframe(df, timeframe):
         return df
     d = df.set_index('timestamp')
     if timeframe == "day":
-        res = d.resample('D').agg({'num_txs': 'sum', 'volume': 'sum'})
+        #--res = d.resample('D').agg({'num_txs': 'sum', 'volume': 'sum'})
+        res = d.resample('M', label='left').agg({'num_txs': 'sum', 'volume': 'sum'})
     elif timeframe == "week":
-        res = d.resample('W-MON').agg({'num_txs': 'sum', 'volume': 'sum'})
+        #--res = d.resample('W-MON').agg({'num_txs': 'sum', 'volume': 'sum'})
+        res = d.resample('W-MON', label='left').agg({'num_txs': 'sum', 'volume': 'sum'})
     elif timeframe == "month":
-        res = d.resample('M').agg({'num_txs': 'sum', 'volume': 'sum'})
+        #--res = d.resample('M').agg({'num_txs': 'sum', 'volume': 'sum'})
+        res = d.resample('M', label='left').agg({'num_txs': 'sum', 'volume': 'sum'})
     else:
-        res = d.resample('D').agg({'num_txs': 'sum', 'volume': 'sum'})
+        #--res = d.resample('D').agg({'num_txs': 'sum', 'volume': 'sum'})
+        res = d.resample('D', label='left').agg({'num_txs': 'sum', 'volume': 'sum'})
     res = res.reset_index()
     res['num_txs'] = res['num_txs'].fillna(0).astype(int)
     res['volume'] = res['volume'].fillna(0.0).astype(float)
