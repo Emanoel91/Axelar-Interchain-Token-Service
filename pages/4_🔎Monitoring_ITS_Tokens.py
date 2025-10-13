@@ -313,7 +313,8 @@ def load_transfer_volume_distribution(start_date, end_date, timeframe, its_token
                     WHEN sum(data:amount::FLOAT) > 1000000 AND sum(data:amount::FLOAT) <= 10000000 THEN '1m<V<=10m'
                     WHEN sum(data:amount::FLOAT) > 10000000 AND sum(data:amount::FLOAT) <= 100000000 THEN '10m<V<=100m'
                     WHEN sum(data:amount::FLOAT) > 100000000 AND sum(data:amount::FLOAT) <= 1000000000 THEN '100m<V<=1b'
-                    WHEN sum(data:amount::FLOAT) > 1000000000 THEN 'V>1b'
+                    WHEN sum(data:amount::FLOAT) > 1000000000 AND sum(data:amount::FLOAT) <= 10000000000 THEN '1b<V<=10b'
+                    WHEN sum(data:amount::FLOAT) > 10000000000 THEN 'V>10b'
                 END AS "Class"
             FROM axelar.axelscan.fact_gmp 
             WHERE data:symbol::STRING = '{its_token}'
@@ -349,7 +350,8 @@ def load_transfer_volume_distribution_total(start_date, end_date, its_token):
                     WHEN sum(data:amount::FLOAT) > 1000000 AND sum(data:amount::FLOAT) <= 10000000 THEN '1m<V<=10m'
                     WHEN sum(data:amount::FLOAT) > 10000000 AND sum(data:amount::FLOAT) <= 100000000 THEN '10m<V<=100m'
                     WHEN sum(data:amount::FLOAT) > 100000000 AND sum(data:amount::FLOAT) <= 1000000000 THEN '100m<V<=1b'
-                    WHEN sum(data:amount::FLOAT) > 1000000000 THEN 'V>1b'
+                    WHEN sum(data:amount::FLOAT) > 1000000000 AND sum(data:amount::FLOAT) <= 10000000000 THEN '1b<V<=10b'
+                    WHEN sum(data:amount::FLOAT) > 10000000000 THEN 'V>10b'
                 END AS "Class"
             FROM axelar.axelscan.fact_gmp 
             WHERE data:symbol::STRING = '{its_token}'
