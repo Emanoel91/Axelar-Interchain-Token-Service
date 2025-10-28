@@ -67,7 +67,7 @@ with col1:
                                                  "CFG","CHRP","CONK","DACKIE","DAI","DCB","DEAL","DOGE","EARTH","ELDA","END","ENSURE","ESE","FDUSD","FIG","FLOKI","FS","FUN",
                                                  "FX","G3","GQ","GRAIN","GRAM","GROK","HOKK","HYB","IMP","IMR","IMT","ITHACA","KATA","KIP","KLIMA","KLAUS","M-BTC","MANYU","MEGALAND",
                                                  "MIRAI","MOLLARS","MOON","MSS","MSTR","MUNITY","MVX","NEIRO","NFTL","NUT","NUTS","OFF","OIK","OMKG","OXYZ","PELL","PSTAKE",
-                                                 "PUNDIAI","QUACK","RBX","RDX","RECALL","RMRK","RSTK","SATOSHI","SOULS","SPECU","Speed","STABLE","TADA","TBH","TRIUMPH","TURBO",
+                                                 "PUNDIAI","QUACK","RBX","RDX","RECALL","RMRK","RSTK","SATOSHI","SHX","SOULS","SPECU","Speed","STABLE","TADA","TBH","TRIUMPH","TURBO",
                                                  "UNV","USDC.axl","USDFI","USDT","USDf","USDX","VOLS","WBTC","WETH","XAV","XDEFI","XRP","YBR","YUP","agETH.axl","axlUSDM",
                                                  "mBASIS","mBTC","mEDGE","mF-ONE","mMEV","mRe7YIELD","mTBILL","mXRP","oBUNNI","oooOOO","sUSDX","sUSDf","sUSDz","wpFIL"])
   
